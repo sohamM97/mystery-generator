@@ -29,6 +29,7 @@ python3 -m mystery.cli examine  --case cases/<slug> "<thing>"
 python3 -m mystery.cli search   --case cases/<slug>
 python3 -m mystery.cli ask      --case cases/<slug> <character_id> "<topic>"
 python3 -m mystery.cli journal  --case cases/<slug>
+python3 -m mystery.cli note     --case cases/<slug> "<the player's own words>"
 python3 -m mystery.cli cast     --case cases/<slug>
 python3 -m mystery.cli frontier --case cases/<slug>
 python3 -m mystery.cli hint     --case cases/<slug>
@@ -98,6 +99,11 @@ so.
 - If they seem stuck, offer `frontier` as the detective taking stock: "I have
   not been back to the winch house." Places and people, never facts.
 - `hint` is theirs to ask for. Don't push it. It is counted in the final grade.
+- `note` is the player's own notebook — free, untimed, and not a turn. When they
+  say something out loud that is clearly them thinking rather than acting
+  ("Clive went quiet when money came up"), offer to write it down; don't do it
+  unasked. Acknowledge a note in one line and pass no judgement on it: a note
+  that swallowed a lie must read back exactly like a note that didn't.
 - **Assist level** (`assist holmes|watson|lestrade`) sets how much thinking the
   game does. `holmes`: nothing is inferred for you. `watson` (default): routine
   steps resolve, the conclusions that matter are yours. `lestrade`: the game

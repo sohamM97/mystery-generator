@@ -172,6 +172,38 @@ def main():
               f"{len(found)}/{len(case.clues)}")
         check("every critical conclusion is reachable",
               all(r.id in held for r in case.revelations if r.critical))
+
+        print("\n[13] the player's notebook")
+        nb = Engine(case, State(assist="watson"))
+        nb.travel("control")
+        r_note = nb.note("the duty log is in two different hands")
+        check("a note is stored verbatim",
+              r_note["note"]["text"] == "the duty log is in two different hands")
+        check("...stamped with where it was written",
+              r_note["note"]["at"] == case.location("control").name)
+        nb.note("mbeki is lying about the winch")
+        nb.note("the butler did it")
+        check("notes accumulate in order",
+              [n["text"] for n in nb.notebook()["notes"]][-1] == "the butler did it")
+        check("notes ride along in the journal", len(nb.journal()["notes"]) == 3)
+        check("a wrong note is kept, not corrected",
+              any(n["text"] == "the butler did it" for n in nb.notebook()["notes"]))
+        check("notes never become evidence", nb.state.found == [] and nb.state.held == [])
+        check("...and never become conclusions", nb.state.hunches == [])
+
+        # A notebook that vanishes between sessions is not a notebook.
+        st_path = os.path.join(tmp, "notes-state.json")
+        nb.state.save(st_path)
+        check("notes survive a save/load round trip",
+              [n["text"] for n in State.load(st_path).notes]
+              == [n["text"] for n in nb.state.notes])
+        # State files written before `notes` existed must still load.
+        import json as _json
+        legacy = _json.load(open(st_path))
+        del legacy["notes"]
+        legacy_path = os.path.join(tmp, "legacy-state.json")
+        _json.dump(legacy, open(legacy_path, "w"))
+        check("a pre-notes state file still loads", State.load(legacy_path).notes == [])
     finally:
         shutil.rmtree(tmp)
 

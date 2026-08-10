@@ -29,6 +29,7 @@ class State:
     hints_used: int = 0
     accusations: list[dict] = field(default_factory=list)
     closed: bool = False
+    notes: list[dict] = field(default_factory=list)  # the player's own words
 
     @staticmethod
     def load(path: str) -> "State":
@@ -500,6 +501,44 @@ class Engine:
             return "circumstantial"
         return "lucky guess"
 
+    # -- the player's own notebook -----------------------------------------
+
+    def note(self, text: str) -> dict:
+        """Write a line in the player's own hand.
+
+        Notes are the one thing in the journal the engine does not vouch for.
+        The player may well write down something a character lied to them
+        about, and must be able to — a notebook you can only fill with true
+        statements is a notebook that solves the case for you. So: stored
+        verbatim, stamped with where and when, never checked against the seal.
+        """
+        entry = {
+            "text": text,
+            "turn": self.state.turns,
+            "at": (l.name if (l := self.case.location(self.state.at)) else "?"),
+        }
+        self.state.notes.append(entry)
+        return {
+            "ok": True,
+            "note": entry,
+            "count": len(self.state.notes),
+            "narrator_guidance":
+                "Acknowledge in one line and get out of the way. Do NOT react to the content: "
+                "never agree, never correct, never let the phrasing warm or cool. A note the "
+                "player got right and a note they got wrong must read exactly the same coming "
+                "back — this is the `deduce` hunch rule, applied to their own handwriting.",
+        }
+
+    def notebook(self) -> dict:
+        return {
+            "notes": list(self.state.notes),
+            "count": len(self.state.notes),
+            "narrator_guidance":
+                "Read back verbatim as the detective's own margin notes, in the order written. "
+                "Never annotate them, never reorder them by how right they are, and never "
+                "quietly drop one that turned out to be wrong.",
+        }
+
     def journal(self) -> dict:
         return {
             "assist": self.state.assist,
@@ -518,10 +557,12 @@ class Engine:
                 for h in self.state.hunches
                 if h not in self.state.held and (rv := self.case.revelation(h))
             ],
+            "notes": list(self.state.notes),
             "progress": f"{len(self.state.found)}/{len(self.case.clues)} clues",
             "narrator_guidance":
                 "Present as the detective's notebook. `suspicions` are unproved — render them "
-                "in the detective's own hedging voice.",
+                "in the detective's own hedging voice. `notes` are the player's own words: "
+                "quote them back untouched and pass no judgement on them.",
         }
 
     def cast_sheet(self) -> dict:

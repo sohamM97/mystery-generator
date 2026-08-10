@@ -134,6 +134,21 @@ def cmd_journal(args) -> int:
     return 0
 
 
+def cmd_note(args) -> int:
+    """Write a line in the player's notebook, or read the notebook back.
+
+    Deliberately not a turn: thinking on paper costs the detective nothing, and
+    charging for it would teach the player not to do it.
+    """
+    sealed, engine = _open(args.case)
+    if args.text:
+        _emit(engine.note(args.text))
+        engine.state.save(sealed.state_path)
+    else:
+        _emit(engine.notebook())
+    return 0
+
+
 def cmd_cast(args) -> int:
     _, engine = _open(args.case)
     _emit(engine.cast_sheet())
@@ -262,6 +277,10 @@ def build_parser() -> argparse.ArgumentParser:
     play("hint", "escalating nudge, recorded in the grade").set_defaults(func=cmd_hint)
     play("status", "session summary").set_defaults(func=cmd_status)
     play("open-questions", "NARRATOR ONLY: map player statements to conclusions").set_defaults(func=cmd_open_questions)
+
+    n = play("note", "write a line in your own notebook")
+    n.add_argument("text", nargs="?", help="omit to read your notes back")
+    n.set_defaults(func=cmd_note)
 
     g = play("go", "travel somewhere")
     g.add_argument("location")
