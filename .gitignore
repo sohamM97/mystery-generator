@@ -1,0 +1,14 @@
+# The seal key. If this leaks, the sealed case is readable. Never commit.
+*.key
+.mystery/
+
+# Sealed cases are per-player artifacts, not source. Committing one would ship a
+# blob nobody can open anyway, since its key is ignored above.
+cases/*
+
+# Drafts contain the unencrypted solution
+drafts/
+
+__pycache__/
+*.pyc
+.venv/

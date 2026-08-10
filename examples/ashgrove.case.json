@@ -1,0 +1,641 @@
+{
+  "meta": {
+    "slug": "ashgrove",
+    "title": "The Ashgrove Signal",
+    "setting": "Ashgrove Radio Observatory, Sutherland, Scotland",
+    "era": "February 1974",
+    "tone": "cold, procedural, Golden Age fair-play",
+    "difficulty": "medium",
+    "schema_version": 1
+  },
+
+  "conceits": [],
+
+  "opening": "The snow stopped at a quarter past ten and the sky over Ashgrove came out hard and clear, which is why they found him at all. Dr Edwin Rask, director of the observatory, lies at the foot of the transmitter mast with his skull broken and his spectacles folded neatly in his breast pocket. The nearest constable is forty miles away behind a drifted pass and will not arrive before morning. There are six people on this hill, and one of them put him there.",
+
+  "cast": [
+    {
+      "id": "rask",
+      "name": "Dr Edwin Rask",
+      "role": "Director (deceased)",
+      "public_desc": "Sixty-one. Ran Ashgrove for nineteen years and was, by every account including his own, difficult. Due to travel to the inquiry board in Inverness on Monday.",
+      "introduced_at": 0
+    },
+    {
+      "id": "mbeki",
+      "name": "Joseph Mbeki",
+      "role": "Chief radio engineer",
+      "public_desc": "Keeps the mast, the winch, the generator and the heating alive. Eleven years at Ashgrove. Everyone on the hill owes him a favour.",
+      "introduced_at": 0,
+      "secrets": [
+        "Forged the lightning-arrester maintenance record after the storm of December 1972.",
+        "That omission killed the junior technician Tam Doyle fourteen months ago.",
+        "Rask found the discrepancy three weeks ago and said nothing until Thursday."
+      ],
+      "locked_topics": {
+        "arrester": "r_motive_forged_log",
+        "doyle": "r_motive_forged_log"
+      }
+    },
+    {
+      "id": "corrigan",
+      "name": "Dr Nell Corrigan",
+      "role": "Deputy director",
+      "public_desc": "Forty-four. Passed over for the Kilbride grant that Rask awarded to himself. Had a shouting row with him in the mess at eight o'clock that half the hill heard.",
+      "introduced_at": 0,
+      "secrets": ["Has been quietly writing to the council about Rask's competence for a year."]
+    },
+    {
+      "id": "ivy",
+      "name": "Ivy Rask",
+      "role": "Doctoral student; the director's daughter",
+      "public_desc": "Twenty-six. Her father supervised her thesis and had lately been refusing to sign it off.",
+      "introduced_at": 0,
+      "secrets": ["Knew her father had rewritten his will a fortnight ago."]
+    },
+    {
+      "id": "pike",
+      "name": "Colin Pike",
+      "role": "Groundsman",
+      "public_desc": "Clears the road, minds the boiler, keeps a shed of tools. Two convictions for affray, both twenty years old, both of which Rask liked to mention.",
+      "introduced_at": 0
+    },
+    {
+      "id": "lindqvist",
+      "name": "Dr Marta Lindqvist",
+      "role": "Visiting astronomer",
+      "public_desc": "Arrived Tuesday from Uppsala for four nights of observing. Trained in medicine before she changed fields, which is why the doctor's note is in her handwriting.",
+      "introduced_at": 0
+    },
+    {
+      "id": "bell",
+      "name": "Arthur Bell",
+      "role": "Council funding officer",
+      "public_desc": "Down from Inverness to audit the observatory's books before Monday. Snowed in since Wednesday and furious about it.",
+      "introduced_at": 1
+    }
+  ],
+
+  "locations": [
+    {
+      "id": "mast",
+      "name": "The Mast Base",
+      "desc": "A hundred and forty feet of galvanised lattice going up into the dark. Guy wires hum. The body lies inside the concrete apron, under a tarpaulin someone has weighted with stones. A steel stairway spirals up the outside to the gantry.",
+      "connects": ["control", "shed", "winchhouse"]
+    },
+    {
+      "id": "control",
+      "name": "Control Room",
+      "desc": "Warm, low-lit, smelling of hot dust and valves. Chart recorders scratch out a signal nobody is watching. The duty log lies open on the desk.",
+      "connects": ["mast", "office", "engineering", "mess"]
+    },
+    {
+      "id": "office",
+      "name": "Rask's Office",
+      "desc": "Colder than the corridor. Nineteen years of paper, a photograph on the desk, and a Chubb safe set into the wall behind the filing cabinet.",
+      "connects": ["control"]
+    },
+    {
+      "id": "engineering",
+      "name": "Engineering Shop",
+      "desc": "Mbeki's country. A shadow board of tools, each outline painted white. A key cabinet. A shelf of solvents and greases with a signing-out sheet on a nail.",
+      "connects": ["control"]
+    },
+    {
+      "id": "mess",
+      "name": "Mess Hall",
+      "desc": "Long table, a stove, a wireless, and the observatory's only comfortable chairs. Someone has laid a sheet over the table where the doctor worked.",
+      "connects": ["control", "darkroom"]
+    },
+    {
+      "id": "darkroom",
+      "name": "Darkroom",
+      "desc": "Red light, chemical stink, and a rack of glass plates drying. The door bolts from the inside and there is a rotating light-lock, so nobody can come or go mid-exposure without ruining the plate.",
+      "connects": ["mess"]
+    },
+    {
+      "id": "shed",
+      "name": "Pike's Shed",
+      "desc": "Spades, grit, a paraffin heater, and a smell of drink. A padlock hangs open on the hasp.",
+      "connects": ["mast"]
+    },
+    {
+      "id": "winchhouse",
+      "name": "Winch House",
+      "desc": "A brick hut at the mast's foot holding the service winch — a drum of steel cable that runs up to a jib arm on the gantry, for lifting equipment nobody wants to carry up a hundred and forty feet of stairs.",
+      "connects": ["mast"],
+      "gates": ["r_not_a_fall"]
+    }
+  ],
+
+  "clues": [
+    {
+      "id": "c_watch",
+      "kind": "physical",
+      "headline": "Rask's wristwatch is smashed and stopped at 9:43.",
+      "detail": "The crystal is starred and the hands have stopped at twenty-three minutes to ten. The case is bent inward on the left side — the side he would have raised to guard his face.",
+      "source": {"kind": "examine", "at": "mast", "ref": "wristwatch"},
+      "supports": ["r_died_earlier"],
+      "reliability": "hard",
+      "hidden_note": "Broken by the first blow in the control room at 21:43. Mbeki never noticed it."
+    },
+    {
+      "id": "c_snow_under_body",
+      "kind": "observation",
+      "headline": "There is a clean layer of snow beneath the body and none at all upon it.",
+      "detail": "Lift the tarpaulin and the body sits on an unmarked white bed. Not a flake on the shoulders, the face, the folded spectacles. Whatever else is true, he came down after the snow stopped at a quarter past ten.",
+      "source": {"kind": "examine", "at": "mast", "ref": "body"},
+      "supports": ["r_died_earlier", "r_not_a_fall"],
+      "reliability": "hard",
+      "hidden_note": "THE crux of the case. Watch says 21:43, snow says he landed after 22:15. Both cannot be a single fall."
+    },
+    {
+      "id": "c_snow_stairs",
+      "kind": "observation",
+      "headline": "An unbroken skin of snow lies on every step of the gantry stairway.",
+      "detail": "Seventy-odd steps spiralling up the mast, and each one carries the same smooth quarter-inch, undisturbed from the apron to the gantry rail.",
+      "source": {"kind": "examine", "at": "mast", "ref": "stairway"},
+      "supports": ["r_not_a_fall"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_body_position",
+      "kind": "observation",
+      "headline": "The body lies beneath the jib arm, not beneath the gantry walkway.",
+      "detail": "The gantry walkway overhangs the apron on the north face. The body is nine feet clear of it, directly under the small steel jib that carries the service cable.",
+      "source": {"kind": "search", "at": "mast"},
+      "supports": ["r_not_a_fall", "r_method_winch"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_rail_frost",
+      "kind": "observation",
+      "headline": "The gantry rail is furred with untouched frost.",
+      "detail": "Climb up and the handrail wears a continuous coat of rime — no smears, no grip marks, no gap where a hand or a hip went over.",
+      "source": {"kind": "examine", "at": "mast", "ref": "rail"},
+      "supports": ["r_not_a_fall"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_grease",
+      "kind": "physical",
+      "headline": "Fresh cable grease is smeared across the shoulders of Rask's coat.",
+      "detail": "A dark band under each armpit and across the back, tacky still, and stinking of the graphite grease they use on running steel.",
+      "source": {"kind": "examine", "at": "mast", "ref": "coat"},
+      "supports": ["r_method_winch", "r_culprit_mbeki"],
+      "reliability": "hard",
+      "hidden_note": "From the sling Mbeki passed under the arms to hoist him."
+    },
+    {
+      "id": "c_doctor_note",
+      "kind": "document",
+      "headline": "Lindqvist's note puts death at least an hour before the body was found.",
+      "detail": "Written in a neat clinical hand: fixed lividity on the left flank, jaw and neck already stiffening at 23:30. 'I would not care to be precise in this cold,' she writes, 'but not less than ninety minutes, and I would say more.'",
+      "source": {"kind": "examine", "at": "mess", "ref": "doctor's note"},
+      "supports": ["r_died_earlier"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_lividity_side",
+      "kind": "testimony",
+      "headline": "Lindqvist: the blood had settled along his left side, though he lay on his back.",
+      "detail": "'You will forgive the lecture. Blood pools where gravity takes it and it fixes in an hour or two. His was fixed along the left flank. He was found flat on his back. So he lay on his left side, somewhere, for a good while — and then he did not.'",
+      "source": {"kind": "ask", "at": "mess", "ref": "lindqvist", "topic": "body"},
+      "supports": ["r_died_earlier", "r_scene_control_room"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_duty_log",
+      "kind": "document",
+      "headline": "Rask's last duty-log entry is signed and timed 21:40.",
+      "detail": "His hand, unmistakable, recording a drift check on the chart recorder. Then nothing — and the next twenty pages are blank, though the recorder ran all night and the log is supposed to be marked every half hour.",
+      "source": {"kind": "examine", "at": "control", "ref": "duty log"},
+      "supports": ["r_died_earlier", "r_scene_control_room"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_scrubbed_floor",
+      "kind": "physical",
+      "headline": "A patch of the control room linoleum has been scrubbed recently and badly.",
+      "detail": "Six feet by four, in front of the recorder desk. The dust that lies evenly everywhere else stops dead at its edge, and the wax has been taken off in streaks.",
+      "source": {"kind": "search", "at": "control"},
+      "supports": ["r_scene_control_room"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_solvent_smell",
+      "kind": "observation",
+      "headline": "The scrubbed patch still smells of engineering-grade solvent.",
+      "detail": "Sharp, sweetish, nothing like the carbolic in the kitchen cupboard. It is the smell of the shelf in the engineering shop.",
+      "source": {"kind": "examine", "at": "control", "ref": "scrubbed patch"},
+      "supports": ["r_scene_control_room", "r_culprit_mbeki"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_doorframe_chip",
+      "kind": "physical",
+      "headline": "A fresh chip is knocked out of the control room doorframe at knee height.",
+      "detail": "Raw pale wood, no dust in it, and a grey scrape of metal left behind in the wound.",
+      "source": {"kind": "examine", "at": "control", "ref": "doorframe"},
+      "supports": ["r_scene_control_room"],
+      "reliability": "hard",
+      "hidden_note": "Where the wrench struck the frame as Mbeki dragged the body out."
+    },
+    {
+      "id": "c_wrench_gap",
+      "kind": "observation",
+      "headline": "One white outline on the engineering shadow board is empty: a torque wrench.",
+      "detail": "Every tool has its painted silhouette and every silhouette has its tool, but for one — a long-handled torque wrench, the outline clean and the hook bare.",
+      "source": {"kind": "examine", "at": "engineering", "ref": "shadow board"},
+      "supports": ["r_scene_control_room", "r_culprit_mbeki"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_solvent_signout",
+      "kind": "document",
+      "headline": "The solvent signing-out sheet shows a half-litre drawn at 22:05, initialled JM.",
+      "detail": "The sheet on its nail, ruled in Mbeki's own careful columns. The last line is his own initials against half a litre of trichlor, timed five past ten.",
+      "source": {"kind": "examine", "at": "engineering", "ref": "signing-out sheet"},
+      "supports": ["r_culprit_mbeki"],
+      "reliability": "hard",
+      "hidden_note": "He is meticulous by habit and signed it out without thinking. This is the mistake that hangs him."
+    },
+    {
+      "id": "c_key_cabinet",
+      "kind": "observation",
+      "headline": "The winch key lives in the engineering key cabinet, and the cabinet is Mbeki's.",
+      "detail": "A steel cabinet, one lock, one key, and that key on the chief engineer's belt. Inside: the winch, the transmitter hall, the fuel store.",
+      "source": {"kind": "examine", "at": "engineering", "ref": "key cabinet"},
+      "supports": ["r_winch_key"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_key_log",
+      "kind": "document",
+      "headline": "No one has signed the winch key out since November.",
+      "detail": "The key log inside the cabinet door runs back three years in the same hand. The last winch entry is the fourth of November, returned the same afternoon.",
+      "source": {"kind": "examine", "at": "engineering", "ref": "key log"},
+      "supports": ["r_winch_key", "r_culprit_mbeki"],
+      "reliability": "hard",
+      "hidden_note": "He did not need to sign it out. He carries it."
+    },
+    {
+      "id": "c_winch_counter",
+      "kind": "physical",
+      "headline": "The winch cycle counter reads one more than the maintenance card.",
+      "detail": "A brass six-digit counter on the gearbox: 004117. The card hanging beside it, in Mbeki's writing, closes at 004116 on the ninth of January.",
+      "source": {"kind": "examine", "at": "winchhouse", "ref": "counter"},
+      "supports": ["r_method_winch", "r_culprit_mbeki", "r_winch_key"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_cable_bright",
+      "kind": "physical",
+      "headline": "The first forty feet of winch cable are bright; the rest is dulled with old grease.",
+      "detail": "Where the cable has run recently through the fairlead it has been wiped to clean steel. Beyond that the drum is furred with the grey of a winter's standing.",
+      "source": {"kind": "examine", "at": "winchhouse", "ref": "cable"},
+      "supports": ["r_method_winch"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_sling",
+      "kind": "physical",
+      "headline": "A canvas lifting sling is on the floor, damp, out of its place on the hook.",
+      "detail": "Wet through and gritted with snow, when everything else in the hut is dry and squared away.",
+      "source": {"kind": "search", "at": "winchhouse"},
+      "supports": ["r_method_winch"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_generator_rough",
+      "kind": "testimony",
+      "headline": "Bell: the generator ran rough for a minute or two at about ten to eleven.",
+      "detail": "'I was trying to sleep. The lights dipped and the note of the thing went down and then up, twice, the way it does when something heavy comes on the line. Ten to eleven, near enough. I looked at my travelling clock because I was composing a complaint.'",
+      "source": {"kind": "ask", "at": "mess", "ref": "bell", "topic": "generator"},
+      "supports": ["r_method_winch"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_roster",
+      "kind": "document",
+      "headline": "The duty roster puts Mbeki alone in engineering from 21:15 to 22:20.",
+      "detail": "Pinned by the control room door. Mbeki: plant round, 21:15–22:20. Nobody paired with him; nobody ever is.",
+      "source": {"kind": "examine", "at": "control", "ref": "roster"},
+      "supports": ["r_alibi_window"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_mess_witness",
+      "kind": "testimony",
+      "headline": "Ivy: Mbeki came into the mess at about half past ten and stayed until the shouting started.",
+      "detail": "'Joseph came in around half ten, wet to the knees, and made tea for everybody, and he was still there when Colin started yelling outside. He was very calm. He is always very calm.'",
+      "source": {"kind": "ask", "at": "mess", "ref": "ivy", "topic": "mbeki"},
+      "supports": ["r_alibi_window"],
+      "reliability": "hard",
+      "hidden_note": "Entirely true, and entirely useless to him: it covers 22:30 onward. Death was 21:43."
+    },
+    {
+      "id": "c_mbeki_account",
+      "kind": "testimony",
+      "headline": "Mbeki: he was in the mess with the others 'most of the evening, from nine or so'.",
+      "detail": "'I finished the plant round early and went in for the warmth. Nine, half nine. Ask anyone, they were all there.' He says it evenly, holding the detective's eye a half-second longer than a man usually does.",
+      "source": {"kind": "ask", "at": "engineering", "ref": "mbeki", "topic": "evening"},
+      "supports": ["r_alibi_window"],
+      "reliability": "false",
+      "debunked_by": ["c_roster", "c_mess_witness", "c_bell_arrival"],
+      "hidden_note": "The one outright lie he tells. Deliver it with total composure, every single time, and never soften it."
+    },
+    {
+      "id": "c_bell_arrival",
+      "kind": "testimony",
+      "headline": "Bell: the mess was four people until Mbeki came in at half past ten.",
+      "detail": "'I can be exact, because I had been counting the company and finding it insufficient. Corrigan shut in her darkroom, Pike in his shed, and the rest of us round the stove from ten o'clock. Mbeki was not among us. He arrived at half past — I heard the outer door.'",
+      "source": {"kind": "ask", "at": "mess", "ref": "bell", "topic": "mess"},
+      "supports": ["r_alibi_window"],
+      "reliability": "hard",
+      "hidden_note": "Flatly contradicts Mbeki's 'nine or half nine'. Bell is pedantic and therefore reliable."
+    },
+    {
+      "id": "c_ivy_habit",
+      "kind": "testimony",
+      "headline": "Ivy: her father used the same four figures for every lock he owned.",
+      "detail": "'He was proud of never writing anything down. It was the same number on the safe, the bicycle chain, the deposit box. My birthday. He thought it was sentimental. It was just that he could not remember anything else.'",
+      "source": {"kind": "ask", "at": "mess", "ref": "ivy", "topic": "safe"},
+      "supports": ["r_safe_combination"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_office_photo",
+      "kind": "document",
+      "headline": "A photograph on the desk is inscribed 'Ivy, three years old — 9.4.51'.",
+      "detail": "A child on a shingle beach, and Rask's hand on the back in fountain pen.",
+      "source": {"kind": "examine", "at": "office", "ref": "photograph"},
+      "supports": ["r_safe_combination"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_inquiry_file",
+      "kind": "document",
+      "headline": "The safe holds a file marked DOYLE — INQUIRY, prepared for Monday.",
+      "detail": "Forty pages in Rask's hand. The lightning arrester on the mast, the storm of December '72, the maintenance record that says it was inspected, and a covering note: 'The record is false. I have sat on this three weeks trying to find another reading of it. There is none.'",
+      "source": {"kind": "examine", "at": "office", "ref": "safe"},
+      "gates": ["r_safe_combination"],
+      "supports": ["r_motive_forged_log"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_part_number",
+      "kind": "document",
+      "headline": "The arrester record cites a part number the stores did not carry until 1973.",
+      "detail": "Bonded to the inquiry file: a maintenance sheet dated 14.12.72 listing arrester element MK-4/B, and beneath it the stores ledger showing MK-4/B first received in March 1973. On the December date the part did not exist at Ashgrove.",
+      "source": {"kind": "examine", "at": "office", "ref": "maintenance record"},
+      "gates": ["r_safe_combination"],
+      "supports": ["r_motive_forged_log"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_doyle_death",
+      "kind": "testimony",
+      "headline": "Pike: young Tam Doyle was killed on the mast in the winter, and nobody was blamed.",
+      "detail": "'Took the full weight of a strike through the feed line. They said the arrester was sound and it was one of those things. Joseph didn't speak for a month. Fond of the lad.'",
+      "source": {"kind": "ask", "at": "shed", "ref": "pike", "topic": "doyle"},
+      "supports": ["r_motive_forged_log"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_rask_thursday",
+      "kind": "testimony",
+      "headline": "Corrigan: Rask and Mbeki were shut in the office together on Thursday, and Mbeki came out grey.",
+      "detail": "'Forty minutes with the door shut, which never happens — Edwin conducted his cruelties in public as a rule. Joseph came out the colour of ash and went and stood in the snow without a coat.'",
+      "source": {"kind": "ask", "at": "darkroom", "ref": "corrigan", "topic": "thursday"},
+      "supports": ["r_motive_forged_log"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_darkroom_plate",
+      "kind": "physical",
+      "headline": "Corrigan's plate carries an unbroken 150-minute exposure ending at 23:30.",
+      "detail": "A glass plate on the drying rack, its edge stamped by the clock drive: start 21:00, close 23:30. The star trails run true and unbroken. Open that door mid-exposure and the plate is a white ruin.",
+      "source": {"kind": "examine", "at": "darkroom", "ref": "plates"},
+      "supports": [],
+      "reliability": "hard",
+      "hidden_note": "Refutes the case against Corrigan. She was sealed in the light-lock the entire window."
+    },
+    {
+      "id": "c_frost_over_prints",
+      "kind": "observation",
+      "headline": "The fingermarks on the gantry rail lie beneath the frost, not above it.",
+      "detail": "Marks in the old grease of the rail, and rime grown over the top of them undisturbed. Days old, at the least.",
+      "source": {"kind": "examine", "at": "mast", "ref": "fingermarks"},
+      "supports": [],
+      "reliability": "hard",
+      "hidden_note": "Refutes the case against Corrigan, whose prints they are — she inspects the rail monthly."
+    },
+    {
+      "id": "c_trunk_call",
+      "kind": "document",
+      "headline": "The exchange docket logs a 45-minute trunk call from Ashgrove, 21:20 to 22:05.",
+      "detail": "The observatory has one line and the operator times every trunk call for billing. Kirkwall, forty-five minutes, booked in Ivy Rask's name.",
+      "source": {"kind": "examine", "at": "control", "ref": "telephone docket"},
+      "supports": [],
+      "reliability": "hard",
+      "hidden_note": "Refutes the case against Ivy. She was on the line through the whole of the killing."
+    },
+    {
+      "id": "c_pike_drunk",
+      "kind": "testimony",
+      "headline": "Lindqvist: Pike was insensible in the shed from before nine, and two of them saw him.",
+      "detail": "'Bell and I looked in at nine because the boiler was smoking. He was on the floor with his mouth open and a bottle gone. We propped the door and left him. He could not have stood, let alone climbed.'",
+      "source": {"kind": "ask", "at": "mess", "ref": "lindqvist", "topic": "pike"},
+      "supports": [],
+      "reliability": "hard",
+      "hidden_note": "Refutes the case against Pike, and debunks his own claim to have seen a figure."
+    },
+    {
+      "id": "c_pike_figure",
+      "kind": "testimony",
+      "headline": "Pike: he saw a figure on the gantry at eleven o'clock.",
+      "detail": "'Up on the walkway, clear as I see you, leaning over. Eleven, or near it. I know what I saw.' He does not look at the detective while he says it.",
+      "source": {"kind": "ask", "at": "shed", "ref": "pike", "topic": "gantry"},
+      "supports": [],
+      "reliability": "false",
+      "debunked_by": ["c_pike_drunk", "c_snow_stairs"],
+      "hidden_note": "He was unconscious. He invents this because he woke beside a corpse with two old convictions behind him and is frightened. Deliver it with total conviction and never let him waver."
+    },
+    {
+      "id": "c_corrigan_row",
+      "kind": "testimony",
+      "headline": "Bell: Corrigan told Rask in the mess that he had finished her and she would see him finished.",
+      "detail": "'Word for word, and half the hill heard it. She had the grant papers in her fist. I have never seen a woman so angry and so quiet about it afterwards.'",
+      "source": {"kind": "ask", "at": "mess", "ref": "bell", "topic": "corrigan"},
+      "supports": [],
+      "reliability": "soft",
+      "hidden_note": "Entirely true and entirely irrelevant. She did say it. She also did not do it."
+    },
+    {
+      "id": "c_will",
+      "kind": "document",
+      "headline": "Rask rewrote his will a fortnight ago, and Ivy is not in it.",
+      "detail": "A copy in the safe, dated the 28th of January. The estate goes to the observatory trust. There is no mention of a daughter anywhere in it.",
+      "source": {"kind": "search", "at": "office"},
+      "gates": ["r_safe_combination"],
+      "supports": [],
+      "reliability": "soft",
+      "hidden_note": "A true and genuinely damning-looking motive for Ivy, refuted only by the trunk call."
+    },
+    {
+      "id": "c_shed_padlock",
+      "kind": "observation",
+      "headline": "The shed padlock is Pike's, and its only key is on Pike's belt.",
+      "detail": "A brass Squire on an open hasp, and Pike's key on a bootlace round his neck. There is no second key and no sign the hasp was forced.",
+      "source": {"kind": "examine", "at": "shed", "ref": "padlock"},
+      "supports": [],
+      "reliability": "hard",
+      "hidden_note": "Cuts against the theory that the weapon came from Pike's shed — the wrench is engineering's, off the shadow board."
+    },
+    {
+      "id": "c_mbeki_arrester",
+      "kind": "testimony",
+      "headline": "Mbeki, shown the forged record, does not deny it.",
+      "detail": "He looks at the sheet for a long moment. 'I signed that in December of seventy-two because the weather was filthy and I was tired and I had done it a hundred times and it had always been sound.' A pause. 'And then it was not sound, and it was Tam who found that out.'",
+      "source": {"kind": "ask", "at": "engineering", "ref": "mbeki", "topic": "arrester"},
+      "supports": ["r_motive_forged_log"],
+      "reliability": "hard"
+    }
+  ],
+
+  "revelations": [
+    {
+      "id": "r_died_earlier",
+      "statement": "Rask died at about 21:43 — an hour or more before the body reached the ground.",
+      "clues": ["c_watch", "c_snow_under_body", "c_doctor_note", "c_duty_log", "c_lividity_side"],
+      "support_needed": 3,
+      "critical": true,
+      "nudge": "Two things in your notes disagree about when the man died, and neither of them is lying. Put the watch beside the snow."
+    },
+    {
+      "id": "r_not_a_fall",
+      "statement": "Rask did not fall from the gantry. Nobody climbed the mast that night at all.",
+      "requires": ["r_died_earlier"],
+      "clues": ["c_snow_stairs", "c_snow_under_body", "c_body_position", "c_rail_frost"],
+      "support_needed": 3,
+      "critical": true,
+      "nudge": "If a man went up that stairway, the stairway would know about it."
+    },
+    {
+      "id": "r_method_winch",
+      "statement": "The body was hoisted to the gantry by the service winch and dropped, to stage a fall.",
+      "requires": ["r_not_a_fall"],
+      "clues": ["c_grease", "c_body_position", "c_winch_counter", "c_cable_bright", "c_sling", "c_generator_rough"],
+      "support_needed": 3,
+      "critical": true,
+      "nudge": "He got up there somehow, and it was not on his own legs. What at Ashgrove lifts heavy things a hundred and forty feet?"
+    },
+    {
+      "id": "r_scene_control_room",
+      "statement": "Rask was killed in the control room and moved afterwards.",
+      "requires": ["r_died_earlier"],
+      "clues": ["c_scrubbed_floor", "c_solvent_smell", "c_doorframe_chip", "c_wrench_gap", "c_duty_log", "c_lividity_side"],
+      "support_needed": 3,
+      "critical": true,
+      "nudge": "He signed the log at twenty to ten and never left the desk. Ask what the floor in front of that desk has to say."
+    },
+    {
+      "id": "r_alibi_window",
+      "statement": "Mbeki's alibi covers half past ten onward — it says nothing about a quarter to ten.",
+      "requires": ["r_died_earlier"],
+      "clues": ["c_roster", "c_mess_witness", "c_mbeki_account", "c_bell_arrival"],
+      "support_needed": 3,
+      "critical": true,
+      "nudge": "An alibi is only as good as the hour it covers. Check the hour."
+    },
+    {
+      "id": "r_winch_key",
+      "statement": "Only the chief engineer could have run the winch that night.",
+      "clues": ["c_key_cabinet", "c_key_log", "c_winch_counter"],
+      "support_needed": 2,
+      "critical": false,
+      "nudge": "The winch is locked. Ask who holds locks at Ashgrove."
+    },
+    {
+      "id": "r_safe_combination",
+      "statement": "Rask's safe opens on his daughter's birthday: 9-4-5-1.",
+      "clues": ["c_ivy_habit", "c_office_photo"],
+      "support_needed": 2,
+      "critical": false,
+      "nudge": "He never wrote a number down, and he kept one number on his desk in plain sight."
+    },
+    {
+      "id": "r_motive_forged_log",
+      "statement": "Mbeki forged the arrester record that got Tam Doyle killed, and Rask was carrying the proof to the inquiry on Monday.",
+      "requires": ["r_safe_combination"],
+      "clues": ["c_inquiry_file", "c_part_number", "c_doyle_death", "c_rask_thursday", "c_mbeki_arrester"],
+      "support_needed": 3,
+      "critical": true,
+      "nudge": "Rask was travelling to Inverness on Monday. He was not travelling empty-handed."
+    },
+    {
+      "id": "r_culprit_mbeki",
+      "statement": "Joseph Mbeki killed Edwin Rask in the control room at 21:43 and hoisted him up the mast an hour later.",
+      "requires": ["r_method_winch", "r_scene_control_room", "r_alibi_window", "r_motive_forged_log", "r_winch_key"],
+      "clues": ["c_solvent_signout", "c_key_log", "c_winch_counter", "c_wrench_gap", "c_grease", "c_solvent_smell"],
+      "support_needed": 4,
+      "critical": true,
+      "nudge": "Everything you have points at one pair of hands. Say the name."
+    }
+  ],
+
+  "timeline": [
+    {"t": 1200, "actor": "corrigan", "location": "mess", "action": "Rows with Rask over the Kilbride grant in front of everyone.", "witnesses": ["rask", "bell", "ivy", "lindqvist"]},
+    {"t": 1230, "actor": "pike", "location": "shed", "action": "Drinks himself insensible beside the paraffin heater."},
+    {"t": 1260, "actor": "lindqvist", "location": "shed", "action": "Looks in on Pike with Bell because the boiler is smoking.", "witnesses": ["bell", "pike"], "trace": "c_pike_drunk"},
+    {"t": 1260, "actor": "corrigan", "location": "darkroom", "action": "Bolts herself in and opens a 150-minute exposure.", "trace": "c_darkroom_plate"},
+    {"t": 1275, "actor": "mbeki", "location": "engineering", "action": "Signs on for the plant round, alone.", "trace": "c_roster"},
+    {"t": 1280, "actor": "ivy", "location": "control", "action": "Books a trunk call to Kirkwall and stays on the line 45 minutes.", "trace": "c_trunk_call"},
+    {"t": 1300, "actor": "rask", "location": "control", "action": "Signs the duty log with a drift check.", "trace": "c_duty_log"},
+    {"t": 1303, "actor": "mbeki", "location": "control", "action": "Strikes Rask twice with a torque wrench taken from the shadow board.", "trace": "c_watch"},
+    {"t": 1310, "actor": "mbeki", "location": "control", "action": "Rolls the body onto its left side behind the recorder desk and leaves it there.", "trace": "c_lividity_side"},
+    {"t": 1325, "actor": "mbeki", "location": "engineering", "action": "Signs out half a litre of solvent.", "trace": "c_solvent_signout"},
+    {"t": 1335, "actor": "mbeki", "location": "control", "action": "Scrubs the floor, and drags the body out, chipping the doorframe.", "trace": "c_doorframe_chip"},
+    {"t": 1355, "actor": "mbeki", "location": "winchhouse", "action": "Slings the body and runs it up to the jib arm; the generator labours.", "trace": "c_winch_counter"},
+    {"t": 1360, "actor": "mbeki", "location": "winchhouse", "action": "Releases the sling. The body falls onto snow that stopped an hour ago.", "trace": "c_snow_under_body"},
+    {"t": 1350, "actor": "bell", "location": "mess", "action": "Lying awake, notes the generator dip and looks at his clock.", "trace": "c_generator_rough"},
+    {"t": 1370, "actor": "mbeki", "location": "mess", "action": "Comes in wet to the knees and makes tea for everyone.", "witnesses": ["ivy", "bell", "lindqvist"], "trace": "c_mess_witness"},
+    {"t": 1390, "actor": "pike", "location": "mast", "action": "Wakes, stumbles out, and finds the body.", "trace": "c_pike_figure"},
+    {"t": 1410, "actor": "lindqvist", "location": "mast", "action": "Examines the body and writes her note.", "witnesses": ["bell"], "trace": "c_doctor_note"}
+  ],
+
+  "false_solutions": [
+    {
+      "id": "fs_corrigan",
+      "culprit": "corrigan",
+      "pitch": "Passed over for the grant she had built her career on, she told him in front of witnesses that she would see him finished, and her fingermarks are on the gantry rail. Two hours later he is dead at the foot of it.",
+      "refuted_by": ["c_darkroom_plate", "c_frost_over_prints"],
+      "consequence": "Corrigan does not defend herself well — she is too proud to — and the council believes you. She is charged, and the plate on the drying rack goes in the bin with the rest of the week's work."
+    },
+    {
+      "id": "fs_ivy",
+      "culprit": "ivy",
+      "pitch": "Her father would not sign off the thesis that was four years of her life, and a fortnight ago he cut her out of his will entirely. She had the run of the buildings and nobody watches a daughter.",
+      "refuted_by": ["c_trunk_call"],
+      "consequence": "She is charged, and the exchange docket that would have cleared her in a sentence is never called for, because nobody thinks to ask the operator."
+    },
+    {
+      "id": "fs_pike",
+      "culprit": "pike",
+      "pitch": "Two convictions for violence, a grudge Rask liked to pick at in public, a shed full of heavy tools twenty yards from the mast — and he is the one who found the body, at an hour he cannot account for.",
+      "refuted_by": ["c_pike_drunk", "c_shed_padlock"],
+      "consequence": "Pike, who has been believed about nothing his whole life, stops trying to explain about halfway through and simply agrees with you."
+    }
+  ],
+
+  "truth": {
+    "culprit": "mbeki",
+    "method": "Struck twice with a torque wrench in the control room at 21:43, left on his left side behind the recorder desk for an hour, then hoisted to the gantry on the service winch and dropped at 22:40 to stage a fall.",
+    "motive": "Rask had proof that Mbeki forged the lightning-arrester maintenance record in December 1972, and that the omission killed the junior technician Tam Doyle. He was taking it to the inquiry board on Monday.",
+    "weapon": "A long-handled torque wrench from the engineering shadow board, now at the bottom of the header tank.",
+    "time": 1303,
+    "accomplices": [],
+    "narrative": "Rask sat on it for three weeks. That was the cruelty of it — not the discovery, but the three weeks of Joseph Mbeki watching him decide, and knowing that whatever he decided would be correct. On Thursday he called him into the office and shut the door and told him, kindly, that he had found no other reading of it, and that he was sorry, and that he was going to Inverness on Monday.\n\nMbeki did his plant round on Friday evening as he had done it eleven years, and at twenty to ten he came into the control room where Rask was writing up a drift check, and he had the torque wrench in his hand and he did not remember picking it up. Two blows. The watch broke against the desk edge as Rask went down.\n\nThen the eleven years took over. He rolled the body out of the light behind the recorder desk, signed out half a litre of solvent because he had never in his life taken anything off that shelf without signing for it, scrubbed the floor, and worked out that the mast was the only story that fitted a broken skull. He waited for the snow to stop, because a body that lands in falling snow is a body that gets snowed on and he could not have said afterwards where he learned that. At twenty to eleven he slung Rask under the arms and ran him up to the jib on the service winch, and the generator laboured, and Arthur Bell lay awake in the mess composing a complaint about it.\n\nAnd then he came in wet to the knees and made tea for everybody, and was very calm, and was still there when Colin Pike began to scream out on the apron.\n\nHe left three things behind. Snow that stopped at a quarter past ten, under a body it never touched. A watch that stopped an hour before that. And his own initials, in his own neat column, against half a litre of solvent at five minutes past."
+  }
+}
