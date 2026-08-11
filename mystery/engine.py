@@ -202,15 +202,16 @@ class Engine:
     def examine(self, ref: str) -> dict:
         """Look at a named thing where the detective is standing.
 
-        Three outcomes, and the engine used to collapse the first two:
+        Three outcomes, kept apart because a narrator renders each differently:
 
         - the thing is here → whatever it has to give, or nothing
         - the thing is *named in this room's description* but its clue lives in
-          a room next door — the tray outside room four, visible from inside it
-          and only examinable from the landing. The old code returned "nothing
-          here", which reads as an empty tray rather than a tray out of reach,
-          and a narrator relaying that states a fact about the world that the
-          engine never said.
+          a room next door — a supper tray outside a bedroom door, visible from
+          inside the bedroom and examinable only from the landing. Answering
+          that with a bare "nothing here" describes an empty tray, when what is
+          true is that the tray is out of reach; a narrator relaying it states a
+          fact about the world the engine never said, and the real clue
+          contradicts it two moves later.
         - nothing of that name here at all → say so as a failed search, never
           as a finding
 
@@ -424,11 +425,13 @@ class Engine:
         # Everything that isn't an acceptance leaves by the same door, carrying
         # the same fields and the same guidance: a statement with no matching
         # conclusion, a true one resting on an unestablished step, and a true
-        # one short of evidence are indistinguishable from outside. They were
-        # not, until now — only a *true* statement could match an id, so
-        # appearing in `suspicions` at all told the player they were right, and
-        # `have`/`need` was a progress bar towards a conclusion that existed
-        # only if their theory held. Both are gone.
+        # one short of evidence are indistinguishable from outside.
+        #
+        # They have to be. Only a *true* statement can match a conclusion id at
+        # all, so any reply that varies with the match — a differing shape, a
+        # count of evidence held, an entry appearing in `suspicions` — tells the
+        # player their theory is correct before they have proved it. State a
+        # theory, read the reply, learn the answer.
         if rev is None:
             return self._record_hypothesis(as_stated, None)
 
@@ -669,10 +672,11 @@ class Engine:
     def _loose_match(cls, claim: str, actual: str) -> float:
         """How much of the true statement the player's wording covers, 0–1.
 
-        A ratio rather than a boolean, and reported as `*_overlap` rather than
-        `*_matched`, because it is not a ruling: the same motive said in the
-        player's own words scores low, and one shared coincidental noun used to
-        score a full match. The narrator holds both texts and decides.
+        A ratio, and reported to the narrator as `*_overlap`, because it is a
+        hint and not a ruling. Word overlap cannot tell a correct motive said in
+        the player's own words (which scores low) from a wrong one that happens
+        to share a noun with the truth (which scores high). The narrator holds
+        both texts and makes the call.
         """
         def words(s: str) -> set[str]:
             return {w.strip(".,;:'\"!?") for w in s.lower().split()

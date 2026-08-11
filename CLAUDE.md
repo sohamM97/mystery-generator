@@ -108,22 +108,48 @@ and is the right place to look before changing validation rules.
 `mystery/schema.py` is the vocabulary for all of the above; `docs/CASE_SCHEMA.md`
 is its prose companion.
 
-## Words not to use
+## How to write here
 
-Banned when explaining this project — in prose to the user, in docs, in
-comments, in commit messages:
+Applies to prose in chat, docs, code comments and commit messages alike. An
+explanation that only makes sense to someone who already understands it has
+explained nothing.
 
-- **plumbing** as a metaphor for unimportant machinery. Say what the thing
-  actually is: non-critical conclusions, connecting steps, bookkeeping. (A
-  boiler, a pipe or a cistern *in a case* is a boiler, a pipe and a cistern —
-  the ban is on the metaphor, not the noun.)
-- **load-bearing** as a metaphor for important. Say why it matters: "the game
-  dissolves if this leaks", "every other check depends on it".
+**Words not to use.** Borrowed metaphor that names your opinion of a thing
+instead of the thing:
 
-Both are filler that sound like precision. They name the writer's opinion of a
-thing's importance instead of the thing, and a reader who doesn't already know
-the system learns nothing from either. If a term needs the reader to have read
-the source to parse it, it belongs in the source, not the explanation.
+- **plumbing** for unimportant machinery. Say what it is: non-critical
+  conclusions, connecting steps, bookkeeping.
+- **load-bearing** for important. Say why: "the game dissolves if this leaks",
+  "every other check depends on it".
+
+A boiler or a pipe *in a case* is a boiler and a pipe — the ban is on the
+metaphor, not the noun. Add future entries here.
+
+**Keep the real name of a thing, and explain it the first time.** `revelation`,
+`gate`, `assist level`, `critical`, `seal`, `hunch` are this project's
+vocabulary and what someone will grep for. Write the name and what it does in
+one breath — "a revelation — a conclusion the case will accept once you hold
+enough clues for it" — then just use the word. Do not paraphrase a real term
+into everyday words: it is longer, vaguer, and unsearchable. (`surface` as a
+noun is ours too — `open-questions` is a spoiler surface — and stays.)
+
+**Explain why something matters with a concrete example, not an abstract
+description.** "You examine the tray and the reply ends by telling you nobody
+opened that door" teaches more than "lestrade auto-resolves supported
+revelations". This is the note the user gives most often; reach for the worked
+example first, not as decoration afterwards.
+
+**Comments describe only the code that is present.** Never reference a diff, a
+deleted line, or "the old code" as though the reader can see it — they have the
+current file and nothing else. Mechanical check, because this one reads fine as
+you write it: the comparative words *used to, no longer, previously, rather
+than, instead of, still, was, until now* are the tell. Each time one appears,
+name exactly what is being compared, or cut it. If prior behaviour is genuinely
+needed to explain the current shape, state what it was and why it changed as
+self-contained prose. Before-and-after belongs in the commit message, which is
+about the change.
+
+**Short sentences, one idea each.**
 
 ## Spoiler discipline
 
