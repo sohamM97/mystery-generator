@@ -28,7 +28,8 @@ commit, because it is the point of the project and it is not discoverable:
 Set it at authoring time (`seal --assist <level>`) and say it can be changed
 mid-case (`assist --case cases/<slug> <level>`) — offer the change if they're
 bouncing off a case or finding it too easy. Note that this is separate from a
-case's own `meta.difficulty`, which is baked in when the case is authored.
+case's own `meta.difficulty`, which is fixed when the case is authored and
+cannot be changed afterwards.
 
 Tell them what else is on the table, because none of it is discoverable and all
 of it is free: `board` (what you've concluded, and what proved it), `frontier`
@@ -117,13 +118,22 @@ explained nothing.
 **Words not to use.** Borrowed metaphor that names your opinion of a thing
 instead of the thing:
 
-- **plumbing** for unimportant machinery. Say what it is: non-critical
-  conclusions, connecting steps, bookkeeping.
-- **load-bearing** for important. Say why: "the game dissolves if this leaks",
-  "every other check depends on it".
+| banned | say what actually happens |
+|---|---|
+| plumbing | non-critical conclusions, the connecting steps, bookkeeping |
+| load-bearing | why it matters: "the game dissolves if this leaks" |
+| pre-flight | check it before asking |
+| hydrate | fill in, load the values into |
+| bake in | fixed when the case is authored, hard-coded |
+| out of the box | with no configuration, from a cold clone |
+| bites us | if this is wrong, X breaks — name X |
+| spike | a small throwaway script that checks one thing |
+| guard | the check that stops X — name what it stops |
 
-A boiler or a pipe *in a case* is a boiler and a pipe — the ban is on the
-metaphor, not the noun. Add future entries here.
+Same for idioms and phrasal verbs where a plain verb exists. A boiler or a pipe
+*in a case* is a boiler and a pipe, and a case's `gates` are gates — the ban is
+on the metaphor, never on this project's own nouns. `surface` stays too:
+`open-questions` is a spoiler surface. Add future entries here.
 
 **Keep the real name of a thing, and explain it the first time.** `revelation`,
 `gate`, `assist level`, `critical`, `seal`, `hunch` are this project's
