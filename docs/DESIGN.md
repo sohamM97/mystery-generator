@@ -19,6 +19,7 @@ Several of these are directly checkable, so `validate.py` checks them:
 | Knox #3 / #10 — one secret passage, no undeclared twins | `conceits` must be declared, and are then clued like anything else |
 | Van Dine #15 — the truth must be apparent in retrospect | The solvability simulation: a perfect detective must reach every critical conclusion |
 | Fair play generally | Every red herring needs a reachable `debunked_by`; every false solution a reachable refutation |
+| Knox #8 — no clue the reader is not shown | `UNSEEN_OBJECT`: every examinable object must be named in its room's description, or the player can only reach it by guessing its name |
 
 The rules were written as a promise to the reader. A promise you can test is
 better than a promise you make.

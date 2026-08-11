@@ -78,6 +78,23 @@ Everything below serves that.
 - **Everyone is hiding something; one of them is hiding this.** Give every
   suspect a secret that is not the murder. It is why the middle of the case is
   interesting.
+- **Every examinable object must appear in its room's description.** The
+  narrator describes the room from `desc` and nothing else, so an object you
+  put in a room without writing it into the prose is invisible: the player can
+  only reach it by naming it at random, and that is guessing, not detection.
+  A ballroom described as chairs, chalk marks and a ladder, holding an
+  examinable `coat`, has a coat nobody in the story can see. Name the object in
+  the description and leave what is *interesting* about it to the clue — "a
+  scrubbed patch on the floor by the desk" in the room, "the scrubbed patch
+  still smells of engineering-grade solvent" in the clue. `validate` reports
+  each one it finds as `UNSEEN_OBJECT`.
+
+  **Place it, don't just name it.** "A coat" tells the player a coat exists.
+  "He is wearing an overcoat" tells them where it is — which is what anyone
+  standing in the room would know without touching anything. The narrator has
+  no source for where things are except your description, and it is forbidden
+  from guessing, so a named-but-unplaced object passes `validate` and still
+  leaves the player asking a question neither of them can answer.
 
 ## Hard rules
 

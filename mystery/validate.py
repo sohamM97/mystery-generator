@@ -15,6 +15,9 @@ import math
 from dataclasses import dataclass
 
 from .schema import Case, CLUE_KINDS, RELIABILITY
+# The same test the engine uses to decide whether a room's description names a
+# thing, so validation and play agree on what is visible.
+from .engine import Engine
 
 # Knox #1: the culprit must be someone the reader has met early. Expressed as a
 # fraction of the acts in the case.
@@ -161,6 +164,19 @@ def _check_references(case: Case, rep: Report) -> None:
         for g in loc.gates:
             if g not in rev_ids:
                 rep.error("BAD_REF", f"location {loc.id!r} gated on unknown revelation {g!r}")
+
+    # An object the player can examine but the room never describes is
+    # invisible: the narrator renders the description it was given, so the coat
+    # nobody wrote into the ballroom is a coat the detective cannot see. They
+    # find it by naming it at random, which is not detection. Knox's rule
+    # against unclued discoveries applied to the furniture.
+    for loc in case.locations:
+        for ref in sorted({c.source.ref for c in case.clues
+                           if c.source.kind == "examine" and c.source.at == loc.id}):
+            if not Engine._mentioned_in(ref, loc.desc):
+                rep.warn("UNSEEN_OBJECT",
+                         f"location {loc.id!r} has examinable {ref!r} that its own "
+                         f"description never mentions — the player cannot see it")
 
     for clue in case.clues:
         if clue.kind not in CLUE_KINDS:

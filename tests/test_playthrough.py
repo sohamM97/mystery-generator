@@ -37,6 +37,23 @@ def main():
     check("example case validates clean", rep.ok, rep.render())
     check("no warnings either", not rep.warnings, rep.render())
 
+    # An object the player can examine but the room never describes is an
+    # object they can only find by naming it at random. The example case is
+    # what an authoring LLM copies, so it has to be clean of these — the check
+    # above covers that. This one proves the check can still fail.
+    import copy as _copy
+    blinded = _copy.deepcopy(case)
+    examined = next(c for c in blinded.clues if c.source.kind == "examine")
+    room = next(l for l in blinded.locations if l.id == examined.source.at)
+    room.desc = "A room. Nothing in it but the dark."
+    unseen = [i for i in validate(blinded).issues if i.code == "UNSEEN_OBJECT"]
+    check("a room that describes none of its objects is flagged", bool(unseen))
+    check("...and the flag names the room and the thing",
+          any(room.id in i.message and examined.source.ref in i.message
+              for i in unseen))
+    check("...as a warning, not an error — it is unfair, not unsolvable",
+          validate(blinded).ok)
+
     print("\n[2] seal round-trips and resists tampering")
     key = new_key()
     blob = encrypt(key, b"the butler did it")

@@ -80,31 +80,31 @@
     {
       "id": "mast",
       "name": "The Mast Base",
-      "desc": "A hundred and forty feet of galvanised lattice going up into the dark. Guy wires hum. The body lies inside the concrete apron, under a tarpaulin someone has weighted with stones. A steel stairway spirals up the outside to the gantry.",
+      "desc": "A hundred and forty feet of galvanised lattice going up into the dark. Guy wires hum. The body lies inside the concrete apron, under a tarpaulin someone has weighted with stones — a shoulder of his coat and the face of his wristwatch showing at its edge. A steel stairway spirals up the outside to the gantry, and there are fingermarks on the gantry rail.",
       "connects": ["control", "shed", "winchhouse"]
     },
     {
       "id": "control",
       "name": "Control Room",
-      "desc": "Warm, low-lit, smelling of hot dust and valves. Chart recorders scratch out a signal nobody is watching. The duty log lies open on the desk.",
+      "desc": "Warm, low-lit, smelling of hot dust and valves. Chart recorders scratch out a signal nobody is watching. The duty log lies open on the desk, the duty roster pinned above it and a telephone docket spiked beside the set. There is a scrubbed patch on the floor by the desk, and a chip knocked out of the doorframe.",
       "connects": ["mast", "office", "engineering", "mess"]
     },
     {
       "id": "office",
       "name": "Rask's Office",
-      "desc": "Colder than the corridor. Nineteen years of paper, a photograph on the desk, and a Chubb safe set into the wall behind the filing cabinet.",
+      "desc": "Colder than the corridor. Nineteen years of paper, a photograph on the desk, a maintenance record left out on top of the pile, and a Chubb safe set into the wall behind the filing cabinet.",
       "connects": ["control"]
     },
     {
       "id": "engineering",
       "name": "Engineering Shop",
-      "desc": "Mbeki's country. A shadow board of tools, each outline painted white. A key cabinet. A shelf of solvents and greases with a signing-out sheet on a nail.",
+      "desc": "Mbeki's country. A shadow board of tools, each outline painted white. A key cabinet, with the key log hanging open on a string beside it. A shelf of solvents and greases with a signing-out sheet on a nail.",
       "connects": ["control"]
     },
     {
       "id": "mess",
       "name": "Mess Hall",
-      "desc": "Long table, a stove, a wireless, and the observatory's only comfortable chairs. Someone has laid a sheet over the table where the doctor worked.",
+      "desc": "Long table, a stove, a wireless, and the observatory's only comfortable chairs. Someone has laid a sheet over the table where the doctor worked, the doctor's note still weighted at one corner of it.",
       "connects": ["control", "darkroom"]
     },
     {
@@ -122,7 +122,7 @@
     {
       "id": "winchhouse",
       "name": "Winch House",
-      "desc": "A brick hut at the mast's foot holding the service winch — a drum of steel cable that runs up to a jib arm on the gantry, for lifting equipment nobody wants to carry up a hundred and forty feet of stairs.",
+      "desc": "A brick hut at the mast's foot holding the service winch — a drum of steel cable that runs up to a jib arm on the gantry, for lifting equipment nobody wants to carry up a hundred and forty feet of stairs. A brass cycle counter is set into the drum housing.",
       "connects": ["mast"],
       "gates": ["r_not_a_fall"]
     }
