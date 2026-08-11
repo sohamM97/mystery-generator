@@ -87,8 +87,8 @@ keep a lying character lying *consistently* in turn forty.
 **Deduction cannot be fished.** `Engine.deduce` accepts a conclusion only when
 the player already holds enough supporting clues; otherwise it records a
 *hunch* and returns without saying whether the hunch was right. Preserving that
-silence is the single most load-bearing behaviour in the engine — a narrator
-that leaks warm/cold here dissolves the game. `accuse` then grades on two
+silence is the one behaviour the whole game rests on — a narrator that leaks
+warm/cold here turns detection into guessing, and the case is over. `accuse` then grades on two
 independent axes, correctness and provability, which is why `lucky guess` is a
 real outcome alongside `airtight`.
 
@@ -107,6 +107,23 @@ and is the right place to look before changing validation rules.
 
 `mystery/schema.py` is the vocabulary for all of the above; `docs/CASE_SCHEMA.md`
 is its prose companion.
+
+## Words not to use
+
+Banned when explaining this project — in prose to the user, in docs, in
+comments, in commit messages:
+
+- **plumbing** as a metaphor for unimportant machinery. Say what the thing
+  actually is: non-critical conclusions, connecting steps, bookkeeping. (A
+  boiler, a pipe or a cistern *in a case* is a boiler, a pipe and a cistern —
+  the ban is on the metaphor, not the noun.)
+- **load-bearing** as a metaphor for important. Say why it matters: "the game
+  dissolves if this leaks", "every other check depends on it".
+
+Both are filler that sound like precision. They name the writer's opinion of a
+thing's importance instead of the thing, and a reader who doesn't already know
+the system learns nothing from either. If a term needs the reader to have read
+the source to parse it, it belongs in the source, not the explanation.
 
 ## Spoiler discipline
 

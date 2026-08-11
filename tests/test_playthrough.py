@@ -245,7 +245,7 @@ def main():
         watson.travel("control"); watson.travel("office")
         watson.examine("photograph")
         watson.travel("mess"); watson.ask("ivy", "safe")
-        check("watson does the plumbing but not the thinking",
+        check("watson draws the connecting steps but not the chain",
               "r_safe_combination" in watson.state.held)
         check("...and leaves critical conclusions alone",
               "r_died_earlier" not in watson.state.held)

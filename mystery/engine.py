@@ -109,8 +109,9 @@ class Engine:
         """Draw the inferences the current assist level hands to the player.
 
         holmes   nothing. You connect every dot yourself.
-        watson   the plumbing — non-critical steps — resolves on its own, so you
-                 spend your attention on the conclusions that matter.
+        watson   the connecting steps — every conclusion the author did not mark
+                 critical — resolve on their own, so the player spends attention
+                 only on the chain that proves who did it.
         lestrade everything the evidence supports, Danganronpa-style: the game
                  voices the deduction and you follow the thread.
 

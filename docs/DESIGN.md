@@ -31,7 +31,7 @@ Justin Alexander, on running mysteries at a table:
 > Players will probably miss the first, ignore the second, and misinterpret the
 > third.
 
-This is the single most load-bearing borrowing in the repo. It survives the
+No other borrowing here does as much work. It survives the
 translation from tabletop to software intact, because the failure it prevents —
 the investigation that dead-ends because one clue was missed — is the same
 failure. `THREE_CLUE` enforces three for critical conclusions, two for
@@ -88,7 +88,7 @@ Two mechanisms carry this:
   narrator is instructed to describe gated content as ordinary, never as
   withheld, because "something here eludes you" is item-gating with extra steps.
 - **Assist levels.** `holmes` infers nothing for you, `lestrade` infers
-  everything, `watson` splits it: routine plumbing resolves itself, every
+  everything, `watson` splits it: the connecting steps resolve themselves, every
   *critical* conclusion is yours. That last one is the specific complaint,
   addressed directly — the game does the bookkeeping you'd find tedious and
   none of the thinking you'd find satisfying.

@@ -5,8 +5,7 @@ Knox's Decalogue, Van Dine's rules, and Justin Alexander's Three Clue Rule as
 things a machine can actually verify, plus a solvability simulation that plays
 the case as a perfect detective and confirms the truth is reachable.
 
-This is the load-bearing answer to "the narrator must not forget or contradict
-itself". The narrator does not remember the case — it queries it — and the case
+This is the answer to "the narrator must not forget or contradict itself". The narrator does not remember the case — it queries it — and the case
 was proven consistent before play began.
 """
 

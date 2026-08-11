@@ -44,6 +44,72 @@ leave you filling gaps — is a dial here, not a fixed design.
 
 Switch mid-case: `python3 -m mystery.cli assist --case cases/<slug> holmes`.
 
+### The same clue at all three levels
+
+The Ashgrove brief hands every player the same opening: Dr Rask at the foot of
+the transmitter mast, skull broken, **spectacles folded neatly in his breast
+pocket**. You go and look at the body.
+
+A man does not fold his spectacles on the way down. Say the conclusion sitting
+on top of that is *he didn't come off that mast — someone put him there*.
+
+**lestrade.** You examine the body, and the reply ends:
+
+> His spectacles are folded in his breast pocket, unbroken. **He did not come off
+> that mast. Someone laid him at the foot of it.**
+
+That second thought isn't yours. The game drew it the instant the clue landed,
+and your case file logs it `drawn by: the game`. You follow where it leads.
+
+**watson.** You examine the body and get the broken skull, the folded
+spectacles, and nothing else — *if* this is a conclusion that matters.
+
+Every conclusion in a case is marked by its author as either part of the chain
+that proves who did it, or a connecting step that just gets you from one fact to
+the next. Watson resolves the connecting steps quietly, so you find them already
+in your file, and never touches the chain. A conclusion on the chain sits there
+fully evidenced and **waits** — the game will not say it, however long you
+stare. You say *"nobody falls with their glasses put away — he was moved"*, and
+it lands.
+
+**holmes.** You get the skull and the folded spectacles. That is all you will
+ever get. Nothing moves until you say the sentence yourself, and your case file
+lists the conclusion without the spectacles underneath it — what proved what is
+your memory and your notes page.
+
+Identical at all three: the same clues in the same places behind the same gates,
+the same evidence threshold (the conclusion needs the spectacles in hand at
+holmes exactly as at lestrade), a hunch that never leaks warm or cold, and a
+final grade that doesn't care which level you played. **The dial changes who
+does the thinking, not how hard the case is.** A holmes player and a lestrade
+player see the identical body; one of them gets told what it means.
+
+## The case file
+
+Everything the case has given you, and the one page it hasn't:
+
+| section | what it holds | who fills it |
+|---|---|---|
+| evidence | every clue found, in full | the engine, on discovery |
+| conclusions | what's established, and what proved each | the engine, tagged `drawn_by` |
+| suspicions | things you said aloud and didn't prove | the engine, in *your* words |
+| notes | anything you type | only you |
+
+```
+python3 -m mystery.cli journal --case cases/<slug>   # the whole file
+python3 -m mystery.cli board   --case cases/<slug>   # conclusions and what carries them
+python3 -m mystery.cli note    --case cases/<slug> "pike went quiet when the boiler came up"
+```
+
+The notes page is yours and the engine never grades it: write down a lie a
+witness told you and it comes back exactly as you wrote it. Notes are numbered
+and editable — `--strike N` rules a line through and leaves it legible,
+`--amend N` writes a replacement underneath, `--rewrite N` fixes the wording in
+place. Nothing erases.
+
+Suspicions are recorded in your words whether or not the case has anything
+behind them, so the list itself tells you nothing — which is the point.
+
 ## Being wrong
 
 You can accuse the wrong person. Every case ships three false solutions, each
