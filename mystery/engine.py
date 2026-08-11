@@ -898,7 +898,12 @@ class Engine:
             "notes": self._notes_view(),
             "progress": f"{len(self.state.found)}/{len(self.case.clues)} clues",
             "narrator_guidance":
-                "Present as the detective's notebook. `suspicions` are the player's own "
+                "Present as the case file, and keep its parts named apart when you speak. "
+                "`clues` are the engine's record of what the player found — evidence, the "
+                "case file, what they turned up. `notes` are the only thing the player wrote: "
+                "call those, and nothing else, their notebook or their own words. Attributing "
+                "a clue to their handwriting tells them they concluded something they never "
+                "did. `suspicions` are the player's own "
                 "unproved statements, in their own words — matched and unmatched alike, and "
                 "you are not told which is which. Render them in the detective's hedging "
                 "voice, all in the same register. An `established` entry with "

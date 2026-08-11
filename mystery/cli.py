@@ -311,7 +311,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     play("look", "describe the current place").set_defaults(func=cmd_look)
     play("search", "search the current place").set_defaults(func=cmd_search)
-    play("journal", "the detective's notebook").set_defaults(func=cmd_journal)
+    play("journal", "the case file: clues found, conclusions held, and your own notes"
+         ).set_defaults(func=cmd_journal)
     play("board", "your conclusions and the evidence under them").set_defaults(func=cmd_board)
     play("cast", "public dossier on everyone").set_defaults(func=cmd_cast)
     play("frontier", "what threads are open (shape only, no content)").set_defaults(func=cmd_frontier)
