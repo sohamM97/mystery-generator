@@ -47,6 +47,14 @@ invisible and unreachable until they're held).
 The `supports` ↔ `clues` mirror is enforced. Asymmetry means the author changed
 their mind halfway and left the case in two states.
 
+A `topic` is matched on content words, not on the exact string: a topic written
+`front door` is reached by "the front door" and by "what do you know about the
+front door?". Two things follow for the author. Write topics as the subject
+itself — `front door`, not `ask about the door` — since only the content words
+survive. And keep one character's topics distinct from each other: wording that
+fits two of them equally reaches neither, because guessing between them would
+spend the player's turn on a question they did not ask.
+
 ## revelations[]
 
 `id`, `statement`, `requires[]` (other revelations — must form a DAG),

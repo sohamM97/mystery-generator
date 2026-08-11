@@ -182,10 +182,70 @@ def main():
         check("...and absent from the player-facing fields",
               "false" not in (view["headline"] + view["detail"]).lower())
 
+        # `ask` keys clues by an exact topic string the narrator never gets to
+        # see, and a miss costs a turn. Wording it a little differently has to
+        # reach the same subject. The authored topics are pulled out of the
+        # case rather than written down here — this file is read by people who
+        # may still play Ashgrove.
+        print("\n[7b] asking about a subject, worded differently")
+        askable = [c for c in case.clues if c.source.kind == "ask"]
+        # Prefer a subject of several words if the case has one; a one-word
+        # subject exercises everything here except the reordering.
+        sample = max(askable, key=lambda c: len(c.source.topic.split()))
+        who, subject = sample.source.ref, sample.source.topic
+
+        def asks(engine, worded):
+            return engine.ask(who, worded).get("new_clues", [])
+
+        check("the author's own wording still works",
+              bool(asks(Engine(case, State()), subject)))
+        check("...and so does a leading 'the'",
+              bool(asks(Engine(case, State()), "the " + subject)))
+        check("...and a question wrapped around it",
+              bool(asks(Engine(case, State()), f"what do you know about {subject}?")))
+        if len(subject.split()) > 1:
+            check("...and the words in another order",
+                  bool(asks(Engine(case, State()), " ".join(reversed(subject.split())))))
+        check("a subject nobody wrote finds nothing",
+              not asks(Engine(case, State()), "the price of fish in Belgium"))
+        check("one subject asked two ways is one question, not two",
+              Engine(case, State()) and
+              (e2 := Engine(case, State())) is not None and
+              (asks(e2, subject), asks(e2, "the " + subject)) and
+              len(e2.state.asked) == 1)
+
+        # A tie must not be broken by guessing. Spending the player's turn on
+        # whichever subject happened to sort first is the bug this replaced,
+        # so a phrase that fits two subjects equally must reach neither.
+        ambiguous = Engine(case, State())
+        pair = [c.source.topic for c in askable if c.source.ref == who][:2]
+        if len(pair) == 2:
+            muddled = " ".join(pair)  # every word of both subjects, at once
+            check("wording that fits two subjects equally resolves to neither",
+                  ambiguous._resolve_topic(who, muddled) == "")
+            check("...and asking it finds nothing rather than the wrong thing",
+                  not asks(Engine(case, State()), muddled))
+
         print("\n[8] frontier shows shape, not content")
         f = eng.frontier()
         check("frontier reports counts only",
               isinstance(f["conclusions_you_could_already_draw"], int))
+        # holmes promises that nothing is inferred for the player. A count of
+        # conclusions that would land right now is an inference: it says the
+        # evidence in hand is already enough, and stopping the search to think
+        # is the decision holmes exists to leave with them.
+        holmes_f = Engine(case, State(assist="holmes")).frontier()
+        check("holmes is not told whether a conclusion is ready",
+              "conclusions_you_could_already_draw" not in holmes_f)
+        check("...and the shape of the case is still there to take stock of",
+              {"places_with_loose_ends", "people_with_more_to_say",
+               "clues_found", "clues_total"} <= set(holmes_f))
+        check("...and the narrator is told not to guess at what it withheld",
+              "holmes" in holmes_f["narrator_guidance"])
+        for level in ("watson", "lestrade"):
+            check(f"{level} still gets the count",
+                  isinstance(Engine(case, State(assist=level))
+                             .frontier()["conclusions_you_could_already_draw"], int))
         # Naming who still has something to say is the point — it's the ship
         # log. What must never appear is a clue id or a conclusion, which is
         # what would turn "take stock" into "here is the answer".
@@ -418,6 +478,76 @@ def main():
         legacy_path = os.path.join(tmp, "legacy-state.json")
         _json.dump(legacy, open(legacy_path, "w"))
         check("a pre-notes state file still loads", State.load(legacy_path).notes == [])
+
+        # [14] Development must not write into a case someone is playing.
+        # A session working on `deduce` reached for a played case as its test
+        # target and left a suspicion in it that the player never said. Two
+        # answers: `scratch` gives development a copy to aim at, and every
+        # write records the state it replaced so `undo` can take it back.
+        print("\n[14] scratch copies and the state history")
+        import io
+        import contextlib
+        from mystery import cli
+
+        def run(*argv):
+            """Call the CLI in-process and return its parsed JSON output."""
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                code = cli.main(list(argv))
+            out = buf.getvalue().strip()
+            return code, (_json.loads(out) if out.startswith(("{", "[")) else out)
+
+        cwd = os.getcwd()
+        os.chdir(tmp)
+        try:
+            live = os.path.join(tmp, "ashgrove")
+            run("look", "--case", live)  # a case only gets a state once it is played
+            live_before = open(os.path.join(live, "state.json")).read()
+            _, made = run("scratch", "--case", live)
+            copy = made["case"]
+            check("scratch names a copy under scratch/",
+                  made["ok"] and copy.startswith("scratch" + os.sep))
+            check("...that is a playable case in its own right",
+                  SealedCase(copy).exists())
+            _, again = run("scratch", "--case", live)
+            check("...and a second copy does not overwrite the first",
+                  again["case"] != copy)
+
+            run("deduce", "--case", copy, "--as-stated", "the butler did it")
+            run("note", "--case", copy, "a test note")
+            check("writing to the copy leaves the original alone",
+                  open(os.path.join(live, "state.json")).read() == live_before)
+            check("...and the original grows no history of its own",
+                  not os.path.exists(os.path.join(live, "state.history.jsonl")))
+
+            after = State.load(os.path.join(copy, "state.json"))
+            check("the copy took both writes",
+                  len(after.hypotheses) == 1 and len(after.notes) == 1)
+            hist = open(os.path.join(copy, "state.history.jsonl")).read().splitlines()
+            check("each write recorded the state it replaced", len(hist) == 2)
+            check("...along with the command that made it",
+                  [_json.loads(h)["cmd"][0] for h in hist] == ["deduce", "note"])
+
+            _, undone = run("undo", "--case", copy)
+            check("undo names what it took back", undone["undid"][0] == "note")
+            check("...and removes the note", not State.load(
+                os.path.join(copy, "state.json")).notes)
+            run("undo", "--case", copy)
+            check("undoing every write restores the state the copy started with",
+                  open(os.path.join(copy, "state.json")).read() == live_before)
+            code, empty = run("undo", "--case", copy)
+            check("undo with nothing behind it fails plainly",
+                  code == 1 and not empty["ok"])
+
+            # Everything a narrator can see, it will eventually offer the
+            # player, and a player who can undo can take back a spent hint.
+            help_text = cli.build_parser().format_help()
+            check("neither tool appears in --help",
+                  "undo" not in help_text and "scratch" not in help_text)
+            check("...and no placeholder is left where they were",
+                  "SUPPRESS" not in help_text)
+        finally:
+            os.chdir(cwd)
     finally:
         shutil.rmtree(tmp)
 

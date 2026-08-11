@@ -9,6 +9,10 @@ cases/*
 # Drafts contain the unencrypted solution
 drafts/
 
+# Throwaway copies made by `scratch`, for development that would otherwise
+# write into a case someone is playing. Same sealed case, same key.
+scratch/
+
 __pycache__/
 *.pyc
 .venv/

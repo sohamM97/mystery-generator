@@ -58,6 +58,37 @@ assertions that plays `examples/ashgrove.case.json` end to end. There is no
 per-test selection flag; to run one section, edit `main()` in
 `tests/test_playthrough.py`.
 
+### Never point `--case` at `cases/` while working on the engine
+
+Anything under `cases/` may be a case somebody is part-way through. `deduce`,
+`note`, `go`, `hint` and the rest write to `cases/<slug>/state.json`, and the
+engine cannot tell a development session from a played turn — both look like
+one CLI call. Testing a change against a live case is how `cases/pierhead`
+ended up holding a suspicion in a player's name that the player never said:
+
+```bash
+# don't — this writes a turn into someone's game
+python3 -m mystery.cli deduce --case cases/pierhead --as-stated "..."
+
+# do — a throwaway copy: same sealed case, same key, its own state
+python3 -m mystery.cli scratch --case cases/pierhead   # -> scratch/pierhead-1
+python3 -m mystery.cli deduce --case scratch/pierhead-1 --as-stated "..."
+```
+
+`scratch/` is gitignored. Delete a copy when you are done with it, or leave it.
+
+Every command that writes state first appends the state it replaced to
+`cases/<slug>/state.history.jsonl`, along with the argv that caused the write —
+which is what makes "who wrote this line" answerable at all. `undo --case <dir>`
+restores the last of those and reports which command it took back. Repeat it to
+walk further back.
+
+`scratch` and `undo` are both left out of `--help`, and neither appears in the
+play skill. Everything a narrator can see it will eventually offer the player,
+and a player who can undo a turn can take back a spent hint or a failed
+accusation — at which point `hints_used` and the accusation record stop meaning
+anything in the final grade. They are repair tools for whoever owns the repo.
+
 ## Architecture
 
 The repo exists to solve one failure mode: **an LLM asked to hold a mystery in

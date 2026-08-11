@@ -301,6 +301,68 @@ class Engine:
                 if want in norm or norm in want]
         return near[0] if len(near) == 1 else ""
 
+    # Words that carry no subject. Dropped from both sides before topics are
+    # compared, so "about the front door" and "front door" are the same
+    # question. Pronouns are deliberately absent: "her letter" and "his letter"
+    # must stay two different subjects.
+    _TOPIC_NOISE = frozenset(
+        "a an the of on in at to and or about with for what when where how "
+        "who did do does was were is are had has have you your tell me say "
+        "said know knew anything something".split()
+    )
+
+    @classmethod
+    def _topic_words(cls, topic: str) -> set[str]:
+        """The content words of a topic, crudely singularised."""
+        words = set()
+        for w in cls._normalise(topic).split():
+            if w in cls._TOPIC_NOISE:
+                continue
+            # "returns" and "return" are the same subject; "gs" is not a word
+            # anyone typed, so only strip the s off something long enough.
+            if len(w) > 3 and w.endswith("s") and not w.endswith("ss"):
+                w = w[:-1]
+            words.add(w)
+        return words
+
+    def _resolve_topic(self, char_id: str, topic: str) -> str:
+        """Match what the player asked to the subject the author wrote.
+
+        Topics are keyed by exact string, so a narrator typing plausible
+        English at a subject it cannot see would miss almost every time — and
+        an `ask` costs a turn whether or not it lands. "the front door" finds
+        a topic written "front door" here.
+
+        Exact match first, then the topic sharing the most content words, and
+        only when it shares at least half of the shorter side. A tie resolves
+        to no match: two subjects that both half-fit means the player was
+        ambiguous, and guessing between them spends their turn on a question
+        they didn't ask.
+        """
+        topics = {c.source.topic for c in self.case.clues
+                  if c.source.kind == "ask" and c.source.ref == char_id}
+        by_norm = {self._normalise(t): t for t in topics}
+        want_norm = self._normalise(topic)
+        if want_norm in by_norm:
+            return by_norm[want_norm]
+
+        want = self._topic_words(topic)
+        if not want:
+            return ""
+        scored = []
+        for t in topics:
+            have = self._topic_words(t)
+            if not have:
+                continue
+            shared = len(want & have)
+            if shared and shared / min(len(want), len(have)) >= 0.5:
+                scored.append((shared, t))
+        if not scored:
+            return ""
+        best = max(s for s, _ in scored)
+        winners = [t for s, t in scored if s == best]
+        return winners[0] if len(winners) == 1 else ""
+
     @classmethod
     def _mentioned_in(cls, ref: str, text: str) -> bool:
         """Does the room's own description name this thing?"""
@@ -314,6 +376,11 @@ class Engine:
         ch = self.case.character(char_id)
         if not ch:
             return {"ok": False, "error": f"no such person: {char_id}"}
+        # The subject the author wrote, if the player's wording points at one.
+        # Everything downstream uses it: a locked subject must deflect however
+        # the player phrased it, and `asked` should record one question asked
+        # once rather than three spellings of it.
+        topic = self._resolve_topic(char_id, topic) or topic
         for locked_topic, required in ch.locked_topics.items():
             if locked_topic.lower() in topic.lower() and required not in self.state.held:
                 return {
@@ -530,17 +597,34 @@ class Engine:
             if have >= rev.support_needed:
                 ripe.append(rev.id)
 
-        return {
+        out = {
             "places_with_loose_ends": open_threads,
             "people_with_more_to_say": unasked,
-            "conclusions_you_could_already_draw": len(ripe),
             "clues_found": len(self.state.found),
             "clues_total": len(self.case.clues),
-            "narrator_guidance":
-                "Render this as the detective taking stock — 'I have not been back to the X' — "
-                "never as a checklist. `conclusions_you_could_already_draw` is a count only: "
-                "say the evidence on the table may already be enough, never say for what.",
         }
+        guidance = ("Render this as the detective taking stock — 'I have not been back to "
+                    "the X' — never as a checklist.")
+
+        # The counts above are shape: how much is left where, and with whom.
+        # A count of conclusions that would land right now is a different kind
+        # of thing — it says the evidence in hand is already enough, which is
+        # the judgement `holmes` promises to leave to the player. Knowing the
+        # number went from 0 to 1 tells them to stop searching and start
+        # thinking, and deciding that moment is most of what holmes is for. The
+        # key is absent there rather than zero: a zero reads as "nothing is
+        # ready yet", which is a claim of its own.
+        if self.state.assist != "holmes":
+            out["conclusions_you_could_already_draw"] = len(ripe)
+            guidance += (" `conclusions_you_could_already_draw` is a count only: say the "
+                         "evidence on the table may already be enough, never say for what.")
+        else:
+            guidance += (" This case is on holmes, so you are not told whether anything is "
+                         "ready to be concluded. Do not guess at it, and do not let the "
+                         "shape of the counts stand in for it.")
+
+        out["narrator_guidance"] = guidance
+        return out
 
     def hint(self) -> dict:
         """Escalating nudges. Costs are recorded and show up in the grade."""

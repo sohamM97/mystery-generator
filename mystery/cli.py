@@ -11,6 +11,7 @@ import argparse
 import datetime
 import json
 import os
+import shutil
 import sys
 
 from .schema import Case, ASSIST_LEVELS
@@ -19,6 +20,17 @@ from .engine import Engine, State
 from .validate import validate
 
 CASES_ROOT = "cases"
+SCRATCH_ROOT = "scratch"
+
+# How many past states to keep per case. Two hundred is more turns than a case
+# runs, so in practice a case keeps every state it has ever had.
+HISTORY_LIMIT = 200
+
+# The command this run was invoked with, copied into each state history entry
+# so a case holding something nobody typed can be traced to what wrote it.
+# `main` sets it from the argv it parsed, which is not always the process argv:
+# the test suite calls `main(["deduce", ...])` in-process.
+_INVOCATION: list[str] = []
 
 
 def _emit(obj) -> None:
@@ -35,10 +47,45 @@ def _open(case_dir: str) -> tuple[SealedCase, Engine]:
     return sealed, Engine(case, state)
 
 
+def _history_path(sealed: SealedCase) -> str:
+    return os.path.join(sealed.dir, "state.history.jsonl")
+
+
+def _save(sealed: SealedCase, engine: Engine) -> None:
+    """Write the state, keeping the one it replaces in `state.history.jsonl`.
+
+    Every command that writes state goes through here, so no write is final.
+    Each history line records the argv that caused it alongside the state that
+    existed beforehand: `undo` restores that state, and the argv answers "what
+    wrote this" when a case turns up holding something nobody typed. A
+    development session testing `deduce` against a played case is the case
+    that motivated it — see the note in CLAUDE.md.
+
+    This is a repair tool for whoever owns the repo, not a rewind for the
+    player. `undo` is hidden from `--help` and absent from the play skill,
+    because a player who can take a turn back can take back a spent hint or a
+    failed accusation, and the grade stops meaning anything.
+    """
+    path = sealed.state_path
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as fh:
+            prior = json.load(fh)
+        line = json.dumps({"cmd": _INVOCATION, "state": prior}, ensure_ascii=False)
+        lines = []
+        hist = _history_path(sealed)
+        if os.path.exists(hist):
+            with open(hist, "r", encoding="utf-8") as fh:
+                lines = fh.read().splitlines()
+        lines = (lines + [line])[-HISTORY_LIMIT:]
+        with open(hist, "w", encoding="utf-8") as fh:
+            fh.write("\n".join(lines) + "\n")
+    engine.state.save(path)
+
+
 def _close(sealed: SealedCase, engine: Engine) -> None:
     engine.state.turns += 1
     engine.state.turns_since_progress += 1
-    engine.state.save(sealed.state_path)
+    _save(sealed, engine)
 
 
 def cmd_validate(args) -> int:
@@ -175,7 +222,7 @@ def cmd_note(args) -> int:
         return 0
     _emit(result)
     if result.get("ok"):
-        engine.state.save(sealed.state_path)
+        _save(sealed, engine)
     return 0 if result.get("ok") else 1
 
 
@@ -265,8 +312,65 @@ def cmd_status(args) -> int:
 def cmd_assist(args) -> int:
     sealed, engine = _open(args.case)
     engine.state.assist = args.level
-    engine.state.save(sealed.state_path)
+    _save(sealed, engine)
     print(f"Assist level set to {args.level}.")
+    return 0
+
+
+def cmd_scratch(args) -> int:
+    """Copy a sealed case to `scratch/`, so development never targets a live one.
+
+    Point `--case` at the copy and every write lands there:
+
+        $ python3 -m mystery.cli scratch --case cases/pierhead
+        { "case": "scratch/pierhead-1", ... }
+        $ python3 -m mystery.cli deduce --case scratch/pierhead-1 --as-stated "..."
+
+    The copy carries the same sealed case, key and play state, so it behaves
+    exactly like the case it came from. `state.history.jsonl` is left behind:
+    the copy starts its own.
+    """
+    sealed = SealedCase(args.case)
+    if not sealed.exists():
+        print(f"no sealed case at {args.case}", file=sys.stderr)
+        raise SystemExit(2)
+    slug = os.path.basename(os.path.normpath(args.case)) or "case"
+    os.makedirs(SCRATCH_ROOT, exist_ok=True)
+    n = 1
+    while os.path.exists(os.path.join(SCRATCH_ROOT, f"{slug}-{n}")):
+        n += 1
+    dest = os.path.join(SCRATCH_ROOT, f"{slug}-{n}")
+    shutil.copytree(args.case, dest,
+                    ignore=shutil.ignore_patterns("state.history.jsonl"))
+    _emit({"ok": True, "case": dest, "copied_from": args.case,
+           "use": f"--case {dest}"})
+    return 0
+
+
+def cmd_undo(args) -> int:
+    """Restore the state from before the last command that wrote one.
+
+    A repair tool. Hidden from `--help` and absent from the play skill on
+    purpose: see the docstring on `_save`.
+    """
+    sealed = SealedCase(args.case)
+    if not sealed.exists():
+        print(f"no sealed case at {args.case}", file=sys.stderr)
+        raise SystemExit(2)
+    hist = _history_path(sealed)
+    lines = []
+    if os.path.exists(hist):
+        with open(hist, "r", encoding="utf-8") as fh:
+            lines = [ln for ln in fh.read().splitlines() if ln.strip()]
+    if not lines:
+        _emit({"ok": False, "error": f"no recorded history for {args.case}"})
+        return 1
+    entry = json.loads(lines.pop())
+    State(**entry["state"]).save(sealed.state_path)
+    with open(hist, "w", encoding="utf-8") as fh:
+        fh.write("".join(ln + "\n" for ln in lines))
+    _emit({"ok": True, "undid": entry.get("cmd", []),
+           "turns": entry["state"].get("turns"), "further_undos": len(lines)})
     return 0
 
 
@@ -290,7 +394,10 @@ def cmd_spoil(args) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="mystery", description="Sealed-truth mystery engine")
-    sub = p.add_subparsers(dest="cmd", required=True)
+    # metavar, not the default brace list: argparse's generated list of choices
+    # names every subcommand including the ones whose help is SUPPRESS, which
+    # would put `undo` back in front of a narrator.
+    sub = p.add_subparsers(dest="cmd", required=True, metavar="<command>")
 
     v = sub.add_parser("validate", help="run fair-play checks on a draft case")
     v.add_argument("draft")
@@ -304,8 +411,12 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--delete-draft", action="store_true")
     s.set_defaults(func=cmd_seal)
 
-    def play(name, help_text):
-        q = sub.add_parser(name, help=help_text)
+    def play(name, help_text=None):
+        # No `help` at all, rather than help=SUPPRESS: argparse only leaves a
+        # subcommand out of the listing when the keyword is absent, and prints
+        # a literal "==SUPPRESS==" line when it is present and set to it.
+        kwargs = {"help": help_text} if help_text is not None else {}
+        q = sub.add_parser(name, **kwargs)
         q.add_argument("--case", required=True, help="path to the case directory")
         return q
 
@@ -366,6 +477,14 @@ def build_parser() -> argparse.ArgumentParser:
     al.add_argument("level", choices=ASSIST_LEVELS)
     al.set_defaults(func=cmd_assist)
 
+    # Both are for whoever owns the repo, and both are kept out of `--help`,
+    # because everything a narrator can see it will eventually offer the
+    # player. `undo` in a player's hands takes back a spent hint or a failed
+    # accusation, and the grade stops meaning anything; `scratch` is an answer
+    # to a question no player has. CLAUDE.md documents them.
+    play("scratch").set_defaults(func=cmd_scratch)
+    play("undo").set_defaults(func=cmd_undo)
+
     sp = play("spoil", "break the seal (recorded)")
     sp.add_argument("what", choices=["culprit", "everything"])
     sp.add_argument("--yes", action="store_true")
@@ -375,6 +494,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv=None) -> int:
+    global _INVOCATION
+    _INVOCATION = list(argv) if argv is not None else sys.argv[1:]
     args = build_parser().parse_args(argv)
     return args.func(args)
 

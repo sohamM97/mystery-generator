@@ -98,6 +98,14 @@ people still have threads, and a bare count of conclusions your evidence would
 already support. Shape, never content. It tells you that you have enough; it
 never tells you what for.
 
+That last count is the one part of `frontier` that changes with the assist
+level: on `holmes` it is absent, not zero. Saying "the evidence in hand is
+already enough" is itself a step of reasoning — it is the moment you stop
+searching and start thinking, and choosing that moment is most of what `holmes`
+is. A zero would be no better, since "nothing is ready yet" is the same claim
+with the sign flipped. The counts of unpulled threads stay at every level:
+knowing you have not been back to the winch house is memory, not deduction.
+
 ## 6. Danganronpa's contribution
 
 The class trial is a *contradiction* engine: testimony is presented, and you
