@@ -14,6 +14,31 @@ from dataclasses import dataclass, field, asdict
 
 from .schema import Case, Clue, ASSIST_LEVELS
 
+# Every notebook operation returns this, and that is the point: writing a line,
+# ruling a line out, and replacing a line must all come back sounding the same.
+# A narrator who sounds relieved when the player strikes a note has just told
+# them the note was wrong.
+# Returned for every deduction that isn't accepted, whatever the reason. If
+# this string ever forks by reason, the player can tell a theory that missed
+# from one that merely lacks evidence, and fishing works again.
+HUNCH_GUIDANCE = (
+    "Not established. Do NOT say whether it is right, whether it matched anything, or "
+    "how close it is — you are not told, and the reasons differ in ways you must not "
+    "let show. Have the detective note the idea in their own words and observe that it "
+    "would not survive a hostile question yet. Keep the same flat register whether the "
+    "thought is inspired or hopeless, and never let the length of your reply vary with "
+    "it: a longer answer for a better guess is the same leak."
+)
+
+NOTE_GUIDANCE = (
+    "Acknowledge in one line and get out of the way. Do NOT react to the content: "
+    "never agree, never correct, never let the phrasing warm or cool. A note the "
+    "player got right and a note they got wrong must read exactly the same coming "
+    "back — this is the `deduce` hunch rule, applied to their own handwriting. That "
+    "holds for striking and amending too: never imply the struck line was the wrong "
+    "one, or that the new one is better."
+)
+
 
 @dataclass
 class State:
@@ -21,7 +46,12 @@ class State:
     at: str = ""  # current location id
     found: list[str] = field(default_factory=list)  # clue ids
     held: list[str] = field(default_factory=list)  # revelation ids
+    inferred: list[str] = field(default_factory=list)  # of those, the ones the assist drew
     hunches: list[str] = field(default_factory=list)  # believed but unevidenced
+    # The player-facing record of unproved ideas, in their own words, whether
+    # or not the statement matched anything. `hunches` above is the private
+    # tally for the endgame; this is the only version anyone gets to read.
+    hypotheses: list[dict] = field(default_factory=list)
     visited: list[str] = field(default_factory=list)
     asked: list[str] = field(default_factory=list)  # source keys already used
     turns: int = 0
@@ -83,6 +113,13 @@ class Engine:
                  spend your attention on the conclusions that matter.
         lestrade everything the evidence supports, Danganronpa-style: the game
                  voices the deduction and you follow the thread.
+
+        Everything drawn here is recorded in `state.inferred`, because a
+        conclusion the game handed you and a conclusion you fought for are not
+        the same thing and must never be displayed as though they were. Without
+        that mark, `board` reads back the game's own reasoning in the player's
+        voice, and a player at lestrade is looking at a walkthrough that claims
+        to be their notes.
         """
         if self.state.assist == "holmes":
             return []
@@ -99,6 +136,7 @@ class Engine:
                 have = sum(1 for c in rev.clues if c in self.state.found)
                 if have >= rev.support_needed:
                     self.state.held.append(rev.id)
+                    self.state.inferred.append(rev.id)
                     gained.append(rev.id)
                     grew = True
             if not grew:
@@ -252,30 +290,46 @@ class Engine:
 
     # -- deduction ---------------------------------------------------------
 
-    def deduce(self, rid: str, evidence: list[str] | None = None) -> dict:
+    def deduce(self, rid: str, evidence: list[str] | None = None,
+               as_stated: str = "") -> dict:
         """The player states a conclusion. The engine rules on whether they've
         earned it.
 
         Obra Dinn's lesson: confirm, but don't make confirmation cheap. You can
         be right without grounds — the engine records that as a hunch, and the
         final grade counts it separately from a proved conclusion.
+
+        `rid` may be empty: the narrator matches the player's sentence against
+        the case's conclusions and often there is nothing to match. That is a
+        normal move, not an error, and it must be recorded like any other
+        unproved statement — see `_record_hypothesis`.
+
+        `as_stated` is the player's own sentence, and it is what gets filed and
+        read back. Never substitute the case's wording for a matched statement:
+        the player would see their own phrasing for the theories that missed
+        and the author's for the ones that landed, which gives the whole thing
+        away in a single glance at the notebook.
         """
-        rev = self.case.revelation(rid)
-        if not rev:
+        rev = self.case.revelation(rid) if rid else None
+        if rid and not rev:
             return {"ok": False, "error": f"no such conclusion: {rid}"}
-        if rid in self.state.held:
+        if rev and rev.id in self.state.held:
             return {"ok": True, "already": True, "statement": rev.statement}
+
+        # Everything that isn't an acceptance leaves by the same door, carrying
+        # the same fields and the same guidance: a statement with no matching
+        # conclusion, a true one resting on an unestablished step, and a true
+        # one short of evidence are indistinguishable from outside. They were
+        # not, until now — only a *true* statement could match an id, so
+        # appearing in `suspicions` at all told the player they were right, and
+        # `have`/`need` was a progress bar towards a conclusion that existed
+        # only if their theory held. Both are gone.
+        if rev is None:
+            return self._record_hypothesis(as_stated, None)
 
         missing_prereq = [r for r in rev.requires if r not in self.state.held]
         if missing_prereq:
-            return {
-                "ok": False,
-                "premature": True,
-                "narrator_guidance":
-                    "The leap is too far — something earlier is still unestablished. Say so as "
-                    "the detective feeling the gap, and name the *area* that's shaky, not the "
-                    "missing conclusion itself.",
-            }
+            return self._record_hypothesis(as_stated, rev.id)
 
         cited = [e for e in (evidence or []) if e in self.state.found]
         supporting = [c for c in rev.clues if c in self.state.found]
@@ -307,19 +361,30 @@ class Engine:
                     "make the new ground feel like a consequence of the thought, not a reward.",
             }
 
-        if rid not in self.state.hunches:
+        return self._record_hypothesis(as_stated, rev.id)
+
+    def _record_hypothesis(self, as_stated: str, rid: str | None) -> dict:
+        """File an unproved statement in the player's own words.
+
+        `rid` is kept in state for the endgame tally and never leaves this
+        method — the return value is byte-identical whether it is None or not.
+        """
+        if rid and rid not in self.state.hunches:
             self.state.hunches.append(rid)
+        text = as_stated.strip()
+        if text and not any(h["text"] == text for h in self.state.hypotheses):
+            self.state.hypotheses.append({
+                "text": text,
+                "turn": self.state.turns,
+                "at": (l.name if (l := self.case.location(self.state.at)) else "?"),
+            })
         return {
             "ok": True,
             "accepted": False,
-            "hunch": True,
-            "have": len(supporting),
-            "need": rev.support_needed,
-            "narrator_guidance":
-                "The instinct may be right but it isn't proved. Do NOT say whether it's correct. "
-                "Have the detective note it as a suspicion and observe that it wouldn't hold up "
-                "to a hostile question yet.",
+            "recorded": True,
+            "narrator_guidance": HUNCH_GUIDANCE,
         }
+
 
     # -- guidance ----------------------------------------------------------
 
@@ -444,10 +509,14 @@ class Engine:
                 "method": truth.method, "weapon": truth.weapon,
                 "narrative": truth.narrative,
             }
-            verdict["motive_matched"] = bool(motive) and self._loose_match(motive, truth.motive)
-            verdict["method_matched"] = bool(method) and self._loose_match(method, truth.method)
+            verdict["motive_overlap"] = self._loose_match(motive, truth.motive)
+            verdict["method_overlap"] = self._loose_match(method, truth.method)
             verdict["narrator_guidance"] = (
-                "Right person. Deliver the full reconstruction from `truth.narrative`. If the "
+                "Right person. Deliver the full reconstruction from `truth.narrative`. "
+                "`motive_overlap` and `method_overlap` are crude word-overlap ratios, not "
+                "rulings: you have both the player's words and `truth`, so read them yourself "
+                "and make the call. A low overlap on a motive said in different words is not a "
+                "miss, and a high one on a coincidental word is not a hit. If the "
                 "support scores are low, say so honestly — they got there, but the case would "
                 "not have held in court. If motive_matched or method_matched is false, walk "
                 "through the part they misread."
@@ -483,12 +552,30 @@ class Engine:
             self.state.closed = True
         return verdict
 
-    @staticmethod
-    def _loose_match(claim: str, actual: str) -> bool:
-        """Cheap overlap check; the narrator makes the real call."""
-        a = {w for w in claim.lower().split() if len(w) > 3}
-        b = {w for w in actual.lower().split() if len(w) > 3}
-        return bool(a & b)
+    # Words that two unrelated sentences about the same case will share anyway,
+    # and so carry no evidence that the player understood the motive.
+    _STOPWORDS = frozenset("""
+        that this then than they them their there were was been have that with
+        into onto from about because while when what which would could should
+        after before over under between during against
+    """.split())
+
+    @classmethod
+    def _loose_match(cls, claim: str, actual: str) -> float:
+        """How much of the true statement the player's wording covers, 0–1.
+
+        A ratio rather than a boolean, and reported as `*_overlap` rather than
+        `*_matched`, because it is not a ruling: the same motive said in the
+        player's own words scores low, and one shared coincidental noun used to
+        score a full match. The narrator holds both texts and decides.
+        """
+        def words(s: str) -> set[str]:
+            return {w.strip(".,;:'\"!?") for w in s.lower().split()
+                    if len(w) > 3} - cls._STOPWORDS
+        a, b = words(claim), words(actual)
+        if not a or not b:
+            return 0.0
+        return round(len(a & b) / len(b), 2)
 
     @staticmethod
     def _grade(support: float, evidential: float) -> str:
@@ -520,24 +607,175 @@ class Engine:
         self.state.notes.append(entry)
         return {
             "ok": True,
-            "note": entry,
-            "count": len(self.state.notes),
+            "note": self._note_view(len(self.state.notes) - 1),
+            "count": len(self._notes_view()),
+            "narrator_guidance": NOTE_GUIDANCE,
+        }
+
+    # Notes are numbered for the player 1-based, and the numbering never
+    # shifts: a struck line keeps its number and its place, so "strike 3"
+    # means the same thing in turn forty as it did in turn four.
+    def _note_view(self, i: int) -> dict:
+        entry = {k: v for k, v in self.state.notes[i].items() if k != "revisions"}
+        return {"n": i + 1, **entry}
+
+    def _note_index(self, n: int) -> int | None:
+        """Resolve a player-facing note number to a list index.
+
+        Torn-out lines keep their slot in state but stop being addressable, so
+        a stale number can never land on a line the player has removed.
+        """
+        if not isinstance(n, int) or n < 1 or n > len(self.state.notes):
+            return None
+        if self.state.notes[n - 1].get("torn"):
+            return None
+        return n - 1
+
+    def _no_such_note(self, n: int) -> dict:
+        return {
+            "ok": False,
+            "error": f"there is no note {n}",
+            "count": len(self._notes_view()),
             "narrator_guidance":
-                "Acknowledge in one line and get out of the way. Do NOT react to the content: "
-                "never agree, never correct, never let the phrasing warm or cool. A note the "
-                "player got right and a note they got wrong must read exactly the same coming "
-                "back — this is the `deduce` hunch rule, applied to their own handwriting.",
+                "The detective looks for that line and doesn't find it. Say so in one "
+                "flat sentence and offer to read the notebook back. Pass no judgement.",
+        }
+
+    def strike(self, n: int) -> dict:
+        """Rule a line through a note without taking it off the page.
+
+        The player will write down things that turn out to be wrong — a lie
+        they were told, a number they misread — and they must be able to
+        retract them. Struck, not erased: still legible, still numbered,
+        visibly crossed out, and `unstrike` puts it back.
+        """
+        i = self._note_index(n)
+        if i is None:
+            return self._no_such_note(n)
+        already = bool(self.state.notes[i].get("struck"))
+        self.state.notes[i]["struck"] = True
+        self.state.notes[i].setdefault("struck_turn", self.state.turns)
+        return {
+            "ok": True,
+            "already_struck": already,
+            "note": self._note_view(i),
+            "count": len(self._notes_view()),
+            "narrator_guidance": NOTE_GUIDANCE,
+        }
+
+    def unstrike(self, n: int) -> dict:
+        """Take the line back off a struck note.
+
+        The player changes their mind about changing their mind — usually
+        because the thing they crossed out turned out to be right after all.
+        Nothing about the strike is worth preserving once they've reversed it,
+        so this leaves no scar.
+        """
+        i = self._note_index(n)
+        if i is None:
+            return self._no_such_note(n)
+        was = bool(self.state.notes[i].pop("struck", False))
+        self.state.notes[i].pop("struck_turn", None)
+        return {
+            "ok": True,
+            "was_struck": was,
+            "note": self._note_view(i),
+            "count": len(self._notes_view()),
+            "narrator_guidance": NOTE_GUIDANCE,
+        }
+
+    def rewrite(self, n: int, text: str) -> dict:
+        """Replace a note's wording in place, keeping its number and its slot.
+
+        `amend` is for changing your mind; this is for fixing how a line was
+        written down — a misheard figure, a sentence that came out wrong. The
+        superseded wording is kept in `revisions` rather than shown, so the
+        page reads clean while the record of what the player first wrote is
+        still there in state for anyone who goes looking.
+        """
+        i = self._note_index(n)
+        if i is None:
+            return self._no_such_note(n)
+        entry = self.state.notes[i]
+        entry.setdefault("revisions", []).append(
+            {"text": entry["text"], "turn": entry.get("turn"), "until": self.state.turns}
+        )
+        entry["text"] = text
+        entry["revised_turn"] = self.state.turns
+        return {
+            "ok": True,
+            "note": self._note_view(i),
+            "count": len(self._notes_view()),
+            "narrator_guidance": NOTE_GUIDANCE,
+        }
+
+    def tear_out(self, n: int) -> dict:
+        """Take a line off the page entirely.
+
+        The blunt instrument, and the last resort: `strike` is the honest way
+        to retract something, because the fact that the player once believed it
+        is part of their reasoning. This is for lines that were never reasoning
+        at all — a duplicate, a typo, a note written against the wrong case.
+        The text survives in state as a tombstone; it just stops being part of
+        the notebook, and its number is never reused.
+        """
+        i = self._note_index(n)
+        if i is None:
+            return self._no_such_note(n)
+        self.state.notes[i]["torn"] = True
+        self.state.notes[i]["torn_turn"] = self.state.turns
+        return {
+            "ok": True,
+            "note": {"n": n, **self.state.notes[i]},
+            "count": len(self._notes_view()),
+            "narrator_guidance": NOTE_GUIDANCE,
+        }
+
+    def amend(self, n: int, text: str) -> dict:
+        """Strike a note and write its replacement underneath.
+
+        Two lines, not one edited line: the old wording stays crossed out where
+        it was, and the new one is a fresh entry stamped with where and when
+        the player actually changed their mind.
+        """
+        struck = self.strike(n)
+        if not struck["ok"]:
+            return struck
+        i = self._note_index(n)
+        entry = {
+            "text": text,
+            "turn": self.state.turns,
+            "at": (l.name if (l := self.case.location(self.state.at)) else "?"),
+            "replaces": n,
+        }
+        self.state.notes.append(entry)
+        return {
+            "ok": True,
+            "note": self._note_view(len(self.state.notes) - 1),
+            "struck": self._note_view(i),
+            "count": len(self._notes_view()),
+            "narrator_guidance": NOTE_GUIDANCE,
         }
 
     def notebook(self) -> dict:
         return {
-            "notes": list(self.state.notes),
-            "count": len(self.state.notes),
+            "notes": self._notes_view(),
+            "count": len(self._notes_view()),
             "narrator_guidance":
-                "Read back verbatim as the detective's own margin notes, in the order written. "
+                "Read back verbatim as the detective's own margin notes, in the order written, "
+                "with their numbers — the player needs the numbers to strike or amend a line. "
                 "Never annotate them, never reorder them by how right they are, and never "
-                "quietly drop one that turned out to be wrong.",
+                "quietly drop one that turned out to be wrong. A note with `struck: true` is "
+                "crossed out but still on the page: render it struck through, in its place, "
+                "and never omit it. A note with `replaces` is the line the player wrote "
+                "instead — say so flatly, without suggesting the new one is any better.",
         }
+
+    def _notes_view(self) -> list[dict]:
+        return [
+            self._note_view(i) for i in range(len(self.state.notes))
+            if not self.state.notes[i].get("torn")
+        ]
 
     def journal(self) -> dict:
         return {
@@ -549,21 +787,120 @@ class Engine:
                 for cid in self.state.found if (c := self.case.clue(cid))
             ],
             "established": [
-                {"id": r, "statement": rv.statement}
+                {"id": r, "statement": rv.statement, "drawn_by": self._drawn_by(r)}
                 for r in self.state.held if (rv := self.case.revelation(r))
             ],
-            "suspicions": [
-                {"id": h, "statement": rv.statement}
-                for h in self.state.hunches
-                if h not in self.state.held and (rv := self.case.revelation(h))
-            ],
-            "notes": list(self.state.notes),
+            "suspicions": self._suspicions_view(),
+            "notes": self._notes_view(),
             "progress": f"{len(self.state.found)}/{len(self.case.clues)} clues",
             "narrator_guidance":
-                "Present as the detective's notebook. `suspicions` are unproved — render them "
-                "in the detective's own hedging voice. `notes` are the player's own words: "
-                "quote them back untouched and pass no judgement on them.",
+                "Present as the detective's notebook. `suspicions` are the player's own "
+                "unproved statements, in their own words — matched and unmatched alike, and "
+                "you are not told which is which. Render them in the detective's hedging "
+                "voice, all in the same register. An `established` entry with "
+                "`drawn_by: 'the game'` was inferred for the player by the assist level, not "
+                "reasoned out by them: never read it back as though they thought of it. "
+                "`notes` are the player's own words: "
+                "quote them back untouched and pass no judgement on them. Ones marked "
+                "`struck` are crossed out but still on the page — render them struck "
+                "through, never omit them.",
         }
+
+    def _suspicions_view(self) -> list[dict]:
+        """The player's unproved statements, in their own words.
+
+        Deliberately carries no id and no match flag. Everything the player
+        said and did not prove sits here on equal terms; nothing in the shape
+        of an entry betrays whether the case has a conclusion behind it.
+        """
+        return [dict(h) for h in self.state.hypotheses]
+
+    def _drawn_by(self, rid: str) -> str:
+        """Who reached this conclusion — the player, or the assist level."""
+        return "the game" if rid in self.state.inferred else "you"
+
+    def board(self) -> dict:
+        """The case board: what the player has concluded, and what proved it.
+
+        `journal` lists conclusions as bare statements, which makes a long case
+        feel like a pile of sentences the game handed you. This shows the
+        chain — clue, clue, therefore — so the player can see their own
+        reasoning standing up, and spot the conclusion resting on one thread.
+
+        It shows only what they already hold. Nothing here is forward-looking:
+        the moment a board says 'you are close to X' it has started solving the
+        case, and `frontier` (shape, never content) is the surface for that.
+
+        Assist decides how much of the wiring is drawn:
+          holmes    the conclusions, nothing else. You remember why.
+          watson    the clues under each conclusion, and what it opened.
+          lestrade  the above, plus which conclusions rest on the bare minimum.
+        """
+        assist = self.state.assist
+        chain = []
+        for rid in self.state.held:
+            rev = self.case.revelation(rid)
+            if not rev:
+                continue
+            entry: dict = {
+                "id": rid,
+                "statement": rev.statement,
+                "drawn_by": self._drawn_by(rid),
+            }
+            if assist != "holmes":
+                entry["because"] = [
+                    {"id": c.id, "headline": c.headline}
+                    for cid in rev.clues if cid in self.state.found
+                    and (c := self.case.clue(cid))
+                ]
+                entry["opened"] = [
+                    l.name for l in self.case.locations if rid in l.gates
+                ]
+            if assist == "lestrade":
+                held = sum(1 for c in rev.clues if c in self.state.found)
+                entry["resting_on_minimum"] = held <= rev.support_needed
+            chain.append(entry)
+
+        supporting = {
+            cid for rid in self.state.held
+            if (rev := self.case.revelation(rid))
+            for cid in rev.clues if cid in self.state.found
+        }
+        loose = [
+            {"id": c.id, "headline": c.headline}
+            for cid in self.state.found
+            if cid not in supporting and (c := self.case.clue(cid))
+        ]
+
+        out = {
+            "assist": assist,
+            "established": chain,
+            "unattached_clues": loose,
+            "progress": f"{len(self.state.held)} conclusions, "
+                        f"{len(self.state.found)}/{len(self.case.clues)} clues",
+            "narrator_guidance":
+                "Render as the detective laying it out — conclusions with the evidence under "
+                "them, in their own words. `drawn_by` is not decoration: conclusions marked "
+                "'you' are the player's own, and conclusions marked 'the game' were handed to "
+                "them by the assist level. Keep the two visibly apart — a player reading their "
+                "board must never mistake the game's reasoning for their own. Do not apologise "
+                "for the handed ones or praise the earned ones; just don't merge them. "
+                "`unattached_clues` are things they hold that no "
+                "conclusion of theirs uses yet: list them flatly as loose ends and never say "
+                "or hint at what they might prove. Nothing here looks forward; do not add a "
+                "'so the next step is' of your own.",
+        }
+        # Suspicions are shown at every assist level, including holmes: they
+        # are nothing but the player's own unproved sentences, so there is
+        # nothing here to be handed and nothing to fish for.
+        out["suspicions"] = self._suspicions_view()
+        out["narrator_guidance"] += (
+            " `suspicions` are the player's own unproved statements in their own words. "
+            "Render them with no more confidence than the day they were first said out loud, "
+            "and give every one of them the same weight — you are not told which of them the "
+            "case can back."
+        )
+        return out
 
     def cast_sheet(self) -> dict:
         """Public dossier. Secrets stay sealed until clued."""

@@ -30,6 +30,12 @@ mid-case (`assist --case cases/<slug> <level>`) — offer the change if they're
 bouncing off a case or finding it too easy. Note that this is separate from a
 case's own `meta.difficulty`, which is baked in when the case is authored.
 
+Tell them what else is on the table, because none of it is discoverable and all
+of it is free: `board` (what you've concluded, and what proved it), `frontier`
+(threads you haven't pulled), `note` (your own notebook, editable), and `hint`
+— which costs nothing but is recorded and read out with the final verdict, and
+they should hear that *before* they spend one, not after.
+
 Then ask which they want. Don't pick for them, and don't start narrating or
 authoring before they've said.
 

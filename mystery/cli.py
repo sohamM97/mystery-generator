@@ -122,8 +122,14 @@ def cmd_ask(args) -> int:
 
 
 def cmd_deduce(args) -> int:
+    """Rule on a conclusion the player has stated.
+
+    `--as-stated` is required and is the player's own sentence. It is what gets
+    filed and read back to them, and passing the case's wording instead would
+    make a matched statement look different from an unmatched one.
+    """
     sealed, engine = _open(args.case)
-    _emit(engine.deduce(args.conclusion, args.evidence or []))
+    _emit(engine.deduce(args.conclusion or "", args.evidence or [], args.as_stated))
     _close(sealed, engine)
     return 0
 
@@ -135,17 +141,51 @@ def cmd_journal(args) -> int:
 
 
 def cmd_note(args) -> int:
-    """Write a line in the player's notebook, or read the notebook back.
+    """Write, strike, or amend a line in the player's notebook — or read it back.
 
     Deliberately not a turn: thinking on paper costs the detective nothing, and
     charging for it would teach the player not to do it.
+
+    `--strike` rules a line through and leaves it legible; `--unstrike` takes
+    the rule back off. `--amend` strikes and writes the replacement underneath;
+    `--rewrite` fixes the wording in place. `--tear-out` is the last resort for
+    a line that was never reasoning — a duplicate or a typo.
     """
     sealed, engine = _open(args.case)
-    if args.text:
-        _emit(engine.note(args.text))
-        engine.state.save(sealed.state_path)
+    if args.amend is not None:
+        if not args.text:
+            _emit({"ok": False, "error": "--amend needs the replacement text"})
+            return 2
+        result = engine.amend(args.amend, args.text)
+    elif args.rewrite is not None:
+        if not args.text:
+            _emit({"ok": False, "error": "--rewrite needs the new wording"})
+            return 2
+        result = engine.rewrite(args.rewrite, args.text)
+    elif args.strike is not None:
+        result = engine.strike(args.strike)
+    elif args.unstrike is not None:
+        result = engine.unstrike(args.unstrike)
+    elif args.tear_out is not None:
+        result = engine.tear_out(args.tear_out)
+    elif args.text:
+        result = engine.note(args.text)
     else:
         _emit(engine.notebook())
+        return 0
+    _emit(result)
+    if result.get("ok"):
+        engine.state.save(sealed.state_path)
+    return 0 if result.get("ok") else 1
+
+
+def cmd_board(args) -> int:
+    """The case board — conclusions with the evidence under them.
+
+    Read-only and not a turn: reviewing your own reasoning is not an action.
+    """
+    _, engine = _open(args.case)
+    _emit(engine.board())
     return 0
 
 
@@ -272,6 +312,7 @@ def build_parser() -> argparse.ArgumentParser:
     play("look", "describe the current place").set_defaults(func=cmd_look)
     play("search", "search the current place").set_defaults(func=cmd_search)
     play("journal", "the detective's notebook").set_defaults(func=cmd_journal)
+    play("board", "your conclusions and the evidence under them").set_defaults(func=cmd_board)
     play("cast", "public dossier on everyone").set_defaults(func=cmd_cast)
     play("frontier", "what threads are open (shape only, no content)").set_defaults(func=cmd_frontier)
     play("hint", "escalating nudge, recorded in the grade").set_defaults(func=cmd_hint)
@@ -280,6 +321,16 @@ def build_parser() -> argparse.ArgumentParser:
 
     n = play("note", "write a line in your own notebook")
     n.add_argument("text", nargs="?", help="omit to read your notes back")
+    n.add_argument("--strike", type=int, metavar="N",
+                   help="rule a line through note N — it stays on the page, crossed out")
+    n.add_argument("--unstrike", type=int, metavar="N",
+                   help="take the rule back off note N")
+    n.add_argument("--amend", type=int, metavar="N",
+                   help="strike note N and write the given text underneath it")
+    n.add_argument("--rewrite", type=int, metavar="N",
+                   help="replace note N's wording in place, keeping its number and slot")
+    n.add_argument("--tear-out", type=int, metavar="N", dest="tear_out",
+                   help="remove note N from the page entirely (duplicates, typos)")
     n.set_defaults(func=cmd_note)
 
     g = play("go", "travel somewhere")
@@ -296,7 +347,10 @@ def build_parser() -> argparse.ArgumentParser:
     a.set_defaults(func=cmd_ask)
 
     d = play("deduce", "state a conclusion")
-    d.add_argument("conclusion")
+    d.add_argument("conclusion", nargs="?",
+                   help="the matching conclusion id — omit when nothing matches")
+    d.add_argument("--as-stated", dest="as_stated", required=True,
+                   help="the player's own sentence, verbatim")
     d.add_argument("--evidence", nargs="*")
     d.set_defaults(func=cmd_deduce)
 
