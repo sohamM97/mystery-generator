@@ -17,6 +17,7 @@ import sys
 from .schema import Case, ASSIST_LEVELS
 from .seal import SealedCase
 from .engine import Engine, State
+from . import casebook
 from .validate import validate
 
 CASES_ROOT = "cases"
@@ -317,6 +318,34 @@ def cmd_assist(args) -> int:
     return 0
 
 
+def cmd_casebook(args) -> int:
+    """The casebook — the player's own records, on pages they leaf through.
+
+    Free and untimed, like the views it is built from. With `--page` it prints
+    one page and exits, which is how the narrator reads a page out; with no
+    arguments it opens the full-screen view, which the player drives.
+    """
+    _, engine = _open(args.case)
+    if args.page:
+        text = casebook.render(engine, args.page)
+        if not text:
+            print(f"no such page: {args.page}", file=sys.stderr)
+            return 2
+        print(text)
+        return 0
+    if not sys.stdout.isatty():
+        # Piped, redirected, or run by a tool that captures output — including
+        # Claude Code's own shell. There is no terminal to take over, so print
+        # every page instead of failing, and say why the pages did not appear.
+        print("The paged casebook needs a terminal to take over, and this "
+              "output is being captured.\nRun it in a terminal of your own to "
+              "leaf through it. All five pages follow.\n", file=sys.stderr)
+        print("\n\n".join(casebook.render(engine, name)
+                          for name in casebook.PAGE_NAMES))
+        return 0
+    return casebook.run(engine)
+
+
 def cmd_scratch(args) -> int:
     """Copy a sealed case to `scratch/`, so development never targets a live one.
 
@@ -482,6 +511,11 @@ def build_parser() -> argparse.ArgumentParser:
     # player. `undo` in a player's hands takes back a spent hint or a failed
     # accusation, and the grade stops meaning anything; `scratch` is an answer
     # to a question no player has. CLAUDE.md documents them.
+    cb = play("casebook", "your own records, on pages you can leaf through")
+    cb.add_argument("--page", choices=casebook.PAGE_NAMES,
+                    help="print one page instead of opening the full-screen view")
+    cb.set_defaults(func=cmd_casebook)
+
     play("scratch").set_defaults(func=cmd_scratch)
     play("undo").set_defaults(func=cmd_undo)
 

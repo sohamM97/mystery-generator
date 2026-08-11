@@ -32,7 +32,9 @@ case's own `meta.difficulty`, which is fixed when the case is authored and
 cannot be changed afterwards.
 
 Tell them what else is on the table, because none of it is discoverable and all
-of it is free: `board` (what you've concluded, and what proved it), `frontier`
+of it is free: `casebook` (all of the below on pages they leaf through in their
+own terminal — ←/→ between pages, `q` to close), `board` (what you've concluded,
+and what proved it), `frontier`
 (threads you haven't pulled), `note` (your own notebook, editable), and `hint`
 — which costs nothing but is recorded and read out with the final verdict, and
 they should hear that *before* they spend one, not after.

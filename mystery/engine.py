@@ -1102,9 +1102,13 @@ class Engine:
 
     def cast_sheet(self) -> dict:
         """Public dossier. Secrets stay sealed until clued."""
+        # `age` and `gender` are omitted rather than sent empty when the author
+        # left them out, so a reader can tell "not recorded" from a blank.
         return {
             "cast": [
-                {"id": c.id, "name": c.name, "role": c.role, "known": c.public_desc}
+                {"id": c.id, "name": c.name, "role": c.role, "known": c.public_desc,
+                 **({"age": c.age} if c.age else {}),
+                 **({"gender": c.gender} if c.gender else {})}
                 for c in self.case.cast
             ]
         }

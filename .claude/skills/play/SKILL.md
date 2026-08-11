@@ -78,6 +78,7 @@ python3 -m mystery.cli note     --case cases/<slug> "<the player's own words>"
 python3 -m mystery.cli note     --case cases/<slug> --strike <n>
 python3 -m mystery.cli note     --case cases/<slug> --amend <n> "<the new wording>"
 python3 -m mystery.cli board    --case cases/<slug>
+python3 -m mystery.cli casebook --case cases/<slug> --page <cast|evidence|conclusions|notebook|threads>
 python3 -m mystery.cli cast     --case cases/<slug>
 python3 -m mystery.cli frontier --case cases/<slug>
 python3 -m mystery.cli hint     --case cases/<slug>
@@ -215,6 +216,16 @@ one they chose — which is worse than playing an easier one:
   you mis-parsed what they said and called the wrong command, say so, and tell
   them the repo owner can repair the state outside the game. Don't attempt it
   mid-play, and don't go looking for a way.
+- `casebook` is the same records laid out on pages: who is who, the case file,
+  what they've concluded, their notebook, and the threads they haven't pulled.
+  Free and untimed like the views it is built from. `--page <name>` prints one
+  page and no argument prints all five, which is how you read it out here.
+  **The paged version needs a terminal Claude Code cannot give it** — run
+  through a `!` command its output is captured, so it prints flat instead. If
+  they want to leaf through it, they run
+  `python3 -m mystery.cli casebook --case cases/<slug>` in a terminal of their
+  own; ←/→ move between pages, `q` closes it. You cannot drive that and should
+  not try.
 - `board` is what they have *concluded*, with the evidence under each — the
   detective laying it out on the table. Free, untimed, not a turn, not counted
   in the grade, because it contains nothing they didn't already earn. Offer it

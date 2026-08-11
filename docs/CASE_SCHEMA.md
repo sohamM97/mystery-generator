@@ -25,6 +25,12 @@ must be in the first third), `secrets[]` (never shown; keeps the narrator
 consistent), `locked_topics{topic: revelation_id}` (this character deflects
 until you know something).
 
+`age` and `gender` are optional, free text, and shown on the casebook's cast
+page when present. Both are strings: authors write "forty-one" and "in her
+fifties", and a number cannot hold the second. Leave either out and the
+casebook omits it rather than showing a blank — the engine never infers a
+gender from a name, so an unrecorded one stays unrecorded.
+
 ## locations[]
 
 `id`, `name`, `desc`, `connects[]`, `gates[]` (revelation ids — the location is

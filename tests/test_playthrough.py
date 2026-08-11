@@ -479,6 +479,73 @@ def main():
         _json.dump(legacy, open(legacy_path, "w"))
         check("a pre-notes state file still loads", State.load(legacy_path).notes == [])
 
+        # [13d] The casebook rearranges what the player already has. Its job is
+        # to add nothing — so what it must never contain is the whole test.
+        print("\n[13d] the casebook")
+        from mystery import casebook
+
+        cb_eng = Engine(case, State(assist="watson"))
+        cb_eng.state.found.extend(c.id for c in case.clues[:4])
+        cb_eng.auto_infer()
+        cb_eng.note("a line in my own hand")
+        cb_eng.deduce("", as_stated="the boatman is lying about the tide")
+        built = casebook.pages(cb_eng)
+        everything = "\n".join("\n".join(body) for _, _, body in built)
+
+        check("every page is built", [n for n, _, _ in built] == casebook.PAGE_NAMES)
+        check("no page leaks the narrator's guidance",
+              "narrator_guidance" not in everything
+              and "NEVER_REVEAL" not in everything
+              and "Do NOT" not in everything)
+        check("no page leaks a clue's reliability",
+              not any(c.hidden_note and c.hidden_note in everything for c in case.clues))
+        check("the player's own note reaches the notebook page",
+              "a line in my own hand" in casebook.render(cb_eng, "notebook"))
+        check("...and their unproved statement is on the conclusions page",
+              "the boatman is lying about the tide"
+              in casebook.render(cb_eng, "conclusions"))
+        check("a clue they have not found is on no page",
+              not any(c.headline in everything for c in case.clues
+                      if c.id not in cb_eng.state.found))
+        check("an unknown page name renders nothing",
+              casebook.render(cb_eng, "the culprit") == "")
+
+        # Opening the casebook is reading, not acting.
+        was = (list(cb_eng.state.found), cb_eng.state.turns, len(cb_eng.state.notes))
+        casebook.pages(cb_eng)
+        check("reading the casebook spends no turn and changes nothing",
+              (list(cb_eng.state.found), cb_eng.state.turns,
+               len(cb_eng.state.notes)) == was)
+
+        # holmes withholds two things elsewhere; the casebook is built on those
+        # same views, so it must withhold them here without being told twice.
+        holmes_cb = Engine(case, State(assist="holmes"))
+        holmes_cb.state.found.extend(c.id for c in case.clues)
+        holmes_cb.deduce("", as_stated="somebody moved the body")
+        holmes_text = "\n".join("\n".join(b) for _, _, b in casebook.pages(holmes_cb))
+        check("holmes sees no count of conclusions already carried",
+              "would already carry" not in holmes_text)
+
+        # An author who fills in age and gender gets them; one who doesn't
+        # gets no empty brackets where they would have been.
+        bare = casebook.render(Engine(case, State()), "cast")
+        check("a cast with no ages recorded shows no empty ones",
+              "()" not in bare and ", )" not in bare)
+
+        import copy
+        filled = copy.deepcopy(case)
+        filled.cast[0].age, filled.cast[0].gender = "forty-one", "woman"
+        sheet = Engine(filled, State()).cast_sheet()["cast"]
+        check("an author who records age and gender gets both",
+              sheet[0]["age"] == "forty-one" and sheet[0]["gender"] == "woman")
+        check("...and a character left blank carries neither key",
+              "age" not in sheet[1] and "gender" not in sheet[1])
+        check("...and the filled-in ones reach the cast page",
+              "(forty-one, woman)" in casebook.render(Engine(filled, State()), "cast"))
+        # Sealing writes the case back out through to_dict.
+        check("the new fields survive a round trip through the schema",
+              Case.from_dict(_json.loads(filled.to_json())).cast[0].age == "forty-one")
+
         # [14] Development must not write into a case someone is playing.
         # A session working on `deduce` reached for a played case as its test
         # target and left a suspicion in it that the player never said. Two
