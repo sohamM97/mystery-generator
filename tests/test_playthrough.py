@@ -88,6 +88,50 @@ def main():
         d = eng.deduce("r_died_earlier", ["c_watch", "c_snow_under_body", "c_duty_log"])
         check("accepted once the evidence is there", d.get("accepted") is True)
 
+        print("\n[4b] examining what isn't in front of you")
+        ex = Engine(case, State(assist="holmes"))
+        here = sorted(ex._examinables_at(ex.state.at))
+        check("a location knows what can be examined in it", bool(here))
+        check("the author's noun is found by a longer one the player used",
+              ex.examine(f"the {here[0]}")["flavour"] and
+              ex._resolve_ref(f"the {here[0]}", set(here)) == here[0])
+        miss = ex.examine("hydraulic press")
+        check("a thing that isn't here is reported as absent, not as empty",
+              miss["unknown_target"] is True and miss["nothing_here"] is True)
+        check("...and says nothing about the thing itself",
+              not miss["new_clues"] and "at_hand_elsewhere" not in miss)
+        check("...and the guidance forbids narrating it as a finding",
+              "never as a finding" in miss["narrator_guidance"])
+        # The tray trap: room four's description names the tray, but the clue
+        # lives on the landing. This used to come back as "nothing here".
+        elsewhere = None
+        for loc in case.locations:
+            probe = Engine(case, State(assist="holmes", at=loc.id))
+            for other in loc.connects:
+                for ref in probe._examinables_at(other):
+                    if probe._mentioned_in(ref, loc.desc):
+                        elsewhere = probe.examine(ref)
+                        break
+                if elsewhere:
+                    break
+            if elsewhere:
+                break
+        if elsewhere is not None:
+            check("a thing this room names but cannot reach says where it is",
+                  bool(elsewhere.get("at_hand_elsewhere")) and not elsewhere["new_clues"])
+        else:
+            check("a thing this room names but cannot reach says where it is",
+                  True, "no such pair in this case; covered by pierhead's tray")
+        gated_ref = next((c.source.ref for c in case.clues
+                          if c.source.kind == "examine" and c.gates), "")
+        if gated_ref:
+            g = Engine(case, State(assist="holmes"))
+            g.state.at = next(c.source.at for c in case.clues
+                              if c.source.kind == "examine" and c.gates)
+            res = g.examine(gated_ref)
+            check("a gated object still reads as present, not absent",
+                  "unknown_target" not in res)
+
         print("\n[5] play: a conclusion opens new ground")
         eng.travel("mast")
         eng.examine("stairway")

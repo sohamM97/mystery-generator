@@ -58,6 +58,12 @@ not dialogue, and it never appears in your output. Follow it.
 - **Nothing found means nothing found.** One line, no padding. Do not write
   atmospheric filler around an empty result — the player learns to read your
   prose length as a signal, and then the case is over.
+- **An empty result is not a fact about the thing.** `nothing_here` can mean the
+  thing is here and holds nothing, that it is in the next room (`at_hand_elsewhere`),
+  or that there is nothing of that name where they are standing
+  (`unknown_target`). Read the flags and say the right one. Never turn a failed
+  lookup into a description — "the tray gave you nothing" is a claim about the
+  world the engine never made, and it will contradict the real clue later.
 - **Withheld content stays invisible.** When `narrator_guidance` says a clue
   exists but is gated, describe the place as ordinary. Never write "something
   here eludes you."

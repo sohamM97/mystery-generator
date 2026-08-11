@@ -199,7 +199,111 @@ class Engine:
         return {"ok": True, **self.look()}
 
     def examine(self, ref: str) -> dict:
-        return self._collect(f"examine:{self.state.at}:{ref}".lower(), f"You examine the {ref}.")
+        """Look at a named thing where the detective is standing.
+
+        Three outcomes, and the engine used to collapse the first two:
+
+        - the thing is here → whatever it has to give, or nothing
+        - the thing is *named in this room's description* but its clue lives in
+          a room next door — the tray outside room four, visible from inside it
+          and only examinable from the landing. The old code returned "nothing
+          here", which reads as an empty tray rather than a tray out of reach,
+          and a narrator relaying that states a fact about the world that the
+          engine never said.
+        - nothing of that name here at all → say so as a failed search, never
+          as a finding
+
+        Refs are matched loosely, because the case calls it `tray` and the room
+        description calls it a `supper tray`, and a player should not have to
+        guess the author's noun.
+        """
+        loc = self.case.location(self.state.at)
+        target = self._resolve_ref(ref, self._examinables_at(self.state.at))
+        if target:
+            return self._collect(f"examine:{self.state.at}:{target}".lower(),
+                                 f"You examine the {ref}.")
+
+        # Only chase a thing into the next room when *this* room's description
+        # already named it. Otherwise "is there a bloodstained knife?" becomes a
+        # way to ask the engine what exists nearby.
+        if loc and self._mentioned_in(ref, loc.desc):
+            for other in loc.connects:
+                if other not in self.reachable_locations():
+                    continue
+                if self._resolve_ref(ref, self._examinables_at(other)):
+                    there = self.case.location(other)
+                    return self._examine_miss(
+                        ref,
+                        at_hand_elsewhere=there.name if there else "",
+                        guidance=(
+                            "The thing is real and this room's own description mentions it, but "
+                            "it is not where the detective is standing — it is in "
+                            f"{there.name if there else 'another room'}. Say that plainly, in "
+                            "one line, as a matter of where their feet are. Do NOT describe the "
+                            "thing, do not say whether it holds anything, and do not imply it "
+                            "is worth the walk."),
+                    )
+            return self._examine_miss(
+                ref, guidance="Nothing to find. Say so in one line and don't pad it.")
+
+        return self._examine_miss(
+            ref, unknown=True,
+            guidance=("There is nothing of that name where the detective is standing. Say so "
+                      "as a failed search — they look and it isn't here — never as a finding "
+                      "about the thing itself, which the engine has told you nothing about. "
+                      "Name no alternative and point nowhere."))
+
+    def _examine_miss(self, ref: str, guidance: str, unknown: bool = False,
+                      at_hand_elsewhere: str = "") -> dict:
+        """A look that found nothing, shaped like `_collect` so callers don't fork."""
+        out = {
+            "ok": True,
+            "flavour": f"You examine the {ref}.",
+            "speaker": "",
+            "new_clues": [],
+            "already_known": [],
+            "nothing_here": True,
+            "inferences": [],
+            "narrator_guidance": guidance,
+        }
+        if unknown:
+            out["unknown_target"] = True
+        if at_hand_elsewhere:
+            out["at_hand_elsewhere"] = at_hand_elsewhere
+        return out
+
+    def _examinables_at(self, loc_id: str) -> set[str]:
+        """Every examinable ref in a location, gated ones included.
+
+        Gated clues stay in the set on purpose: a gated object must still route
+        into `_collect`, which has the guidance for describing a place as
+        ordinary. Dropping it here would make it report as absent instead.
+        """
+        return {c.source.ref for c in self.case.clues
+                if c.source.kind == "examine" and c.source.at == loc_id}
+
+    @staticmethod
+    def _normalise(s: str) -> str:
+        return " ".join(w.strip(".,;:'\"!?") for w in s.lower().split())
+
+    @classmethod
+    def _resolve_ref(cls, ref: str, candidates: set[str]) -> str:
+        """Match the player's noun to the author's. Exact, then containment."""
+        want = cls._normalise(ref)
+        if not want:
+            return ""
+        by_norm = {cls._normalise(c): c for c in candidates}
+        if want in by_norm:
+            return by_norm[want]
+        near = [orig for norm, orig in by_norm.items()
+                if want in norm or norm in want]
+        return near[0] if len(near) == 1 else ""
+
+    @classmethod
+    def _mentioned_in(cls, ref: str, text: str) -> bool:
+        """Does the room's own description name this thing?"""
+        want = cls._normalise(ref)
+        return bool(want) and want in cls._normalise(text)
 
     def search(self) -> dict:
         return self._collect(f"search:{self.state.at}".lower(), "You search the room thoroughly.")
