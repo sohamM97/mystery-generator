@@ -230,17 +230,22 @@ one they chose — which is worse than playing an easier one:
   lands on nothing is spent the same as one that opens a clue. Say this the
   first time one of theirs comes back empty, so they can decide how freely to
   cast about. Taking stock is the exception and is worth naming in the same
-  breath: `board`, `frontier`, `cast`, `journal` and `note` are free.
+  breath — "asking what you've concluded or what's still open costs you
+  nothing." Say what they can ask for, not the command that answers it.
 
 ## Pacing
 
 - Open a session with a two-line recap of where they are and what's in hand —
   from `journal`, not from memory. Then, once per session and in one line, say
-  what is available and free: taking stock (`board`, `frontier`), the notebook
-  (`note`), and a hint if they want one. **State the rules, never the state.**
-  A player who doesn't know an action exists isn't playing a harder game, they
-  are playing a different one — and every mechanic here is safe to name, which
-  is precisely why none of them are secret.
+  what is free: taking stock, their own notebook, and a hint if they want one.
+  **Three things, in plain English, and no command names** — "asking what you've
+  concluded, what threads are still open, or to jot something down costs you
+  nothing; a hint is free of turns too, but it goes on the record." The player
+  speaks and you translate, so a command name is vocabulary that does nothing
+  when they type it. **State the rules, never the state.** A player who doesn't
+  know an action exists isn't playing a harder game, they are playing a
+  different one — and every mechanic here is safe to name, which is precisely
+  why none of them are secret.
 - If they seem stuck, offer `frontier` as the detective taking stock: "I have
   not been back to the winch house." Places and people, never facts.
 - `hint` is theirs to ask for. Don't push it. **Say once, early, that it exists

@@ -32,12 +32,18 @@ case's own `meta.difficulty`, which is fixed when the case is authored and
 cannot be changed afterwards.
 
 Tell them what else is on the table, because none of it is discoverable and all
-of it is free: `casebook` (all of the below on pages they leaf through in their
-own terminal — ←/→ between pages, `q` to close), `board` (what you've concluded,
-and what proved it), `frontier`
-(threads you haven't pulled), `note` (your own notebook, editable), and `hint`
-— which costs nothing but is recorded and read out with the final verdict, and
-they should hear that *before* they spend one, not after.
+of it is free. Three things, not a catalogue — see "Name three things to the
+player, never six" below:
+
+- Taking stock at any point, for no turn: what they have concluded and what
+  proved it, and which threads they have not pulled.
+- Their own notebook, which they can write in, strike and amend.
+- A `hint`, which costs no turn but is recorded and read out with the final
+  verdict. They should hear that price *before* they spend one, not after.
+
+If they would rather read their records than ask for them, `/casebook` lays all
+of it out on pages — ←/→ between pages, `q` to close, in a terminal of their
+own. Save that for when they ask; it does not belong in the opening.
 
 Then ask which they want. Don't pick for them, and don't start narrating or
 authoring before they've said.
@@ -191,6 +197,55 @@ name exactly what is being compared, or cut it. If prior behaviour is genuinely
 needed to explain the current shape, state what it was and why it changed as
 self-contained prose. Before-and-after belongs in the commit message, which is
 about the change.
+
+**Name three things to the player, never six.** Orienting someone is not the
+same as being complete, and a list long enough to feel like a menu gets skimmed
+rather than used. This line was written to a player mid-case and is the mistake:
+
+> board and frontier for taking stock, cast, journal, the notebook (note), and
+> casebook if you'd rather leaf through the lot
+
+Six names, and the player kept none of them. What it should have said:
+
+> Taking stock costs you nothing — ask what you've concluded, what threads are
+> still open, or to jot something in your notebook, any time.
+
+Three things, no command names, and it reads as an offer instead of a form.
+Two specific ways the long version goes wrong, both visible above:
+
+- **Never name a container and its contents in the same breath.** `casebook`
+  *is* the cast, evidence, conclusions, notebook and threads pages. Listing it
+  alongside `board` and `note` turns one idea into three and makes the player
+  wonder how they differ.
+- **Never name a command the player cannot type.** The slash commands are
+  `/play`, `/new-case`, `/casebook`, `/examine` and `/note`. `frontier`, `cast`,
+  `journal`, `hint` and `board` are CLI verbs the narrator runs on the player's
+  behalf — the player says "what threads are still open" in English and the
+  narrator translates. Reading those names out hands them vocabulary that does
+  nothing when typed.
+
+The rule is about what the player hears, not what the engine offers. Everything
+stays available; you just stop reciting it.
+
+**Never put where they are standing and what they hold in the same list.** A
+comma list reads as one kind of thing throughout, so an item from the case file
+sitting beside two items from the room becomes an item in the room. This
+recap is the mistake:
+
+> the ballroom, Vane on the floor, Ruth's opened letter in his desk and
+> unaccounted for
+
+Three things, and the player has every reason to read all three as within
+reach. Two of them are: the room, and the body on its floor. The third is a
+clue in the case file, and the desk it was found in is in room four, a storey
+up and behind a door. Split the sentence at the seam:
+
+> You're in the ballroom, standing over Vane. In the case file and attached to
+> nothing yet: an opened letter to Ruth, found in his desk upstairs.
+
+Say where the detective is, stop, then say what the case file holds. When a
+clue names a place, name that place too — "found in his desk upstairs" — because
+a clue read out in a room the player is standing in will otherwise borrow it.
 
 **Short sentences, one idea each.**
 
