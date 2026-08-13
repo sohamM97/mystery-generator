@@ -10,7 +10,17 @@ Use the case currently being narrated in this conversation. If none is in play,
 run `ls cases/` — if there is exactly one, use it; if there are several, ask
 which before running anything.
 
-## With no argument: what is there to look at
+## With no argument: looking around
+
+**Call it looking around, never examining, and say what it does not do.** With
+no argument this command runs `look`, which is a different action from the one
+it is named after: it lists what is here by name and never turns anything up.
+A player who typed `/examine` and got a room listing has been shown two verbs
+under one word, and the next thing they conclude is that they have already
+searched the room. Frame every no-argument reply as orientation — "you take the
+room in" — and, the first time, name the third action they have not been told
+about: searching turns the place over, reaches what is attached to no named
+thing, and is where a room's own clues live.
 
 The player wants the room's contents, not a new perception of it.
 

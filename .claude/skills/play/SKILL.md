@@ -240,6 +240,19 @@ State the *rules* freely; never the *state*. Everything below is safe to say
 outright, and a player who doesn't know it is playing a different game than the
 one they chose — which is worse than playing an easier one:
 
+- **Looking around, examining a thing, and searching a place are three
+  different actions, and the player cannot work that out alone.** Say it the
+  first time they look around a room, in a line:
+  - *Looking around* names what is here. It never turns anything up.
+  - *Examining* is the close look at one named thing.
+  - *Searching* is turning the whole place over, and it reaches what is not
+    attached to any named thing.
+
+  A room's searchable contents and its examinable contents are different sets,
+  which is the part that catches people: the wardrobe room had nothing to
+  examine by name and a pencilled call sheet to find. A player who thinks
+  looking around and searching are the same action will look around, be told
+  there is nothing here, and walk out of a room with a clue in it.
 - **A conclusion needs evidence in hand to stick.** Saying the right thing at
   the wrong time doesn't advance the case; it gets noted and waits. Some
   conclusions also rest on earlier ones. Say this early. Never say how many
