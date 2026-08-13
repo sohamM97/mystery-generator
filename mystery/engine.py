@@ -30,6 +30,22 @@ HUNCH_GUIDANCE = (
     "it: a longer answer for a better guess is the same leak."
 )
 
+LOOK_GUIDANCE = (
+    "Describe the place, then say what is within reach. `people_you_can_speak_to` is "
+    "who has something to say here, not who is standing where: the engine tracks "
+    "nobody's position. Write it as reach — 'Maureen Cade is about, if you want her' — "
+    "never as a body in a fixed spot, because the same person answers in two rooms and "
+    "a player told twice that she is standing in front of them will ask how she moved. "
+    "An empty `examinable` is an answer and the player is owed it: say plainly that "
+    "nothing here invites a closer look, or they will read your scenery as a list of "
+    "leads and name nouns out of it one at a time. Anything `examinable` holds that "
+    "the description never mentioned goes into the prose first — a `body` in the list "
+    "means a man is lying on the floor, and listing him between a coat and a lamp "
+    "buries him. Never mention `searchable` in either direction: it says whether this "
+    "place has something to find, and turning that into 'worth a look' or 'nothing "
+    "here for you' hands the player a nudge they did not earn. Same for `unfound_here`."
+)
+
 ARRIVAL_GUIDANCE = (
     " Read `how_you_got_here` out after the verdict, plainly and as counts. It is a "
     "record of how they arrived, not a second score: nothing in it makes a solve "
@@ -186,10 +202,16 @@ class Engine:
                 for x in loc.connects
                 if x in reachable and (n := self.case.location(x))
             ],
-            "people_here": people,
+            # Not "people_here": the engine tracks no one's position. This is
+            # everyone with testimony sourced in this room, which is a claim
+            # about who the detective can get hold of and not about where a
+            # body is standing. Maureen Cade answers in her own foyer and her
+            # own kitchen, and nothing says she walked between them.
+            "people_you_can_speak_to": people,
             "examinable": examinable,
             "searchable": any(c.source.kind == "search" for c in here),
             "unfound_here": sum(1 for c in here if c.id not in self.state.found),
+            "narrator_guidance": LOOK_GUIDANCE,
         }
 
     def _people_at(self, loc_id: str) -> list[dict]:

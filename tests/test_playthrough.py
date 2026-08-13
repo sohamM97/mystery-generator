@@ -724,7 +724,40 @@ def main():
     # The verdict rules on two things: right person, and provable. Neither can
     # show that a case was solved with four conclusions handed over and three
     # hints spent. This is that record, and it is counts only — never a score.
-    print("\n[17] the verdict says how they got there")
+    # The engine tracks nobody's position, so the same person answers in every
+    # room their testimony lives in. The field must not invite the narrator to
+    # claim they are standing there.
+    print("\n[17] who you can speak to is reach, not position")
+    reach = Engine(case, State(assist="watson"))
+    check("a look says who can be spoken to, not who is here",
+          "people_here" not in reach.look())
+
+    # Nobody in Ashgrove talks in two places, so build the case that bit:
+    # Maureen Cade answers in the Marine's foyer and its kitchen alike.
+    twice = _copy.deepcopy(case)
+    spoken = next(c for c in twice.clues if c.source.kind == "ask")
+    second = _copy.deepcopy(spoken)
+    second.id = spoken.id + "_elsewhere"
+    second.source.at = next(l.id for l in twice.locations if l.id != spoken.source.at)
+    second.supports = []
+    twice.clues.append(second)
+    two_rooms = Engine(twice, State(assist="watson"))
+    where = set()
+    for loc in twice.locations:
+        two_rooms.state.at = loc.id
+        if any(p["id"] == spoken.source.ref
+               for p in two_rooms.look()["people_you_can_speak_to"]):
+            where.add(loc.id)
+    check("...and one person answering in two rooms appears in both",
+          where == {spoken.source.at, second.source.at})
+    g = reach.look()["narrator_guidance"]
+    check("look carries guidance, like every other engine response", bool(g))
+    check("...telling the narrator to write reach rather than a fixed spot",
+          "not who is standing where" in g)
+    check("...and forbidding searchable from becoming a nudge",
+          "Never mention `searchable`" in g)
+
+    print("\n[18] the verdict says how they got there")
     lest = Engine(case, State(assist="lestrade"))
     lest.examine("body"); lest.examine("wristwatch"); lest.travel("control")
     lest.examine("duty log")
