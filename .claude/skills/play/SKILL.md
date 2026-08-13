@@ -132,6 +132,19 @@ not dialogue, and it never appears in your output. Follow it.
   about the scene in the register of a menu, and they will read past it. Name
   the ones the description skipped, plainly, in a sentence of narration. Then
   offer the list.
+
+  **An empty `examinable` list is information, and you must hand it over.** The
+  wardrobe room describes rails of costume, a treadle machine and a paraffin
+  heater, and its examinable list is empty: there is nothing in there to look
+  at closely by name. Say so when you describe the room — "nothing in here
+  invites a closer look" — because the alternative is the player reading your
+  scenery as a list of leads and naming nouns out of it one at a time. They are
+  entitled to know the room holds no targets. Withholding it is not difficulty,
+  it is a guessing game about your prose.
+
+  **Description is scenery; only some of it is a target.** Say this to the
+  player the first time one of their nouns misses, because until someone says
+  it they will assume every noun you wrote is a thing the case has filed.
 - **When they speak to a character, a character answers.** "Ruth, did you know
   he had a letter addressed to you?" is dialogue, and it gets dialogue back —
   not a report on what the engine returned, and not a list of what they could
@@ -163,6 +176,15 @@ not dialogue, and it never appears in your output. Follow it.
   (`unknown_target`). Read the flags and say the right one. Never turn a failed
   lookup into a description — "the tray gave you nothing" is a claim about the
   world the engine never made, and it will contradict the real clue later.
+
+  **`unknown_target` on a noun you just put in the room is the trap.** The
+  wardrobe room's description gives the player rails of costume; `examine
+  costumes` comes back `unknown_target`; "you look, and there's nothing here
+  answering to that" reads as *there are no costumes* and flatly contradicts the
+  sentence you wrote a moment earlier. The engine said something narrower — it
+  has nothing filed under that name. Say that, and leave the rails standing:
+  "nothing about the rails detains you." Then say plainly that the room holds
+  nothing to examine by name, which is the fact they were actually missing.
 - **Withheld content stays invisible.** When `narrator_guidance` says a clue
   exists but is gated, describe the place as ordinary. Never write "something
   here eludes you."
