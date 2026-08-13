@@ -45,12 +45,10 @@ The pages are `cast`, `evidence`, `conclusions`, `notebook` and `threads`.
 Match what they said to one generously: "who's who" is `cast`, "what have I
 got" is `evidence`, "what do I know" is `conclusions`, "my notes" is
 `notebook`, "what's left" is `threads`. If nothing matches, ask which page
-rather than guessing — printing the wrong one wastes their attention, though
-not a turn.
+rather than guessing — printing the wrong one wastes their attention.
 
-Free, untimed, and not a turn, exactly like the views it is built from. It
-holds nothing the player has not already earned, which is why it costs nothing
-to look.
+It holds nothing the player has not already earned, and nothing in it reaches
+the final read-out.
 
 ## What to say
 

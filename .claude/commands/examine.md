@@ -16,25 +16,25 @@ The player wants the room's contents, not a new perception of it.
 
 **First, ask the engine what this room has already shown them.** `journal`
 carries `within_reach`: the examinable refs this room named when they looked
-around or arrived. It is free and spends no turn, because it is not the engine
-telling you something new — it is the room repeating itself. Read that list
-back and say plainly it is what they were shown.
+around or arrived. Read that list back and say plainly it is what they were
+shown.
 
 Do not go hunting through the conversation for an older `look` result. The
 engine records this precisely so that a trimmed conversation, or a session that
-picked the case up cold, does not cost the player a turn to be told what their
-detective is looking straight at.
+picked the case up cold, still knows what the detective is looking straight at.
 
-**Only if `within_reach` is empty** — they have genuinely not looked around
-here yet — run:
+**If `within_reach` is empty** — they have not looked around here yet — run:
 
 ```
 python3 -m mystery.cli look --case cases/<slug>
 ```
 
-`look` **is a turn.** Tell them before you spend it, not after, and let them
-decline. A player who asked "what's here?" expecting a reminder and got charged
-for a fresh look around has been billed without being told the price.
+Run it too whenever they ask to look again rather than be reminded. It costs
+them nothing, and a room can name something it could not name before, because
+clues are gated on knowledge: a conclusion drawn since their last look may
+have opened something here. Don't run it speculatively on their behalf, though.
+Watching the list grow after each deduction is a nudge they didn't ask for, and
+the reminder in `within_reach` is what answers "what's here?"
 
 Read the list back as things within reach, not as an inventory screen. Anything
 `examinable` names that the room's description never mentioned gets said in
@@ -47,13 +47,11 @@ listing him between a coat and a lamp buries him.
 python3 -m mystery.cli examine --case cases/<slug> "$ARGUMENTS"
 ```
 
-This is a turn, whether or not it finds anything.
-
 **If they have already examined this thing in this conversation**, say what
-they already hold and ask whether to spend the turn on a second look, rather
-than spending it for them. A second look returns the same thing unless
-something has changed since — but it can, because clues are gated on
-knowledge, so never tell them a second look is pointless. Ask.
+they already hold and offer the second look rather than silently repeating the
+first. A second look returns the same thing unless something has changed since
+— but it can, because clues are gated on knowledge, so never tell them a second
+look is pointless.
 
 ## Reading the result
 

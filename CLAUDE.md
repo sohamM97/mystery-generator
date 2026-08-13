@@ -35,11 +35,11 @@ Tell them what else is on the table, because none of it is discoverable and all
 of it is free. Three things, not a catalogue — see "Name three things to the
 player, never six" below:
 
-- Taking stock at any point, for no turn: what they have concluded and what
-  proved it, and which threads they have not pulled.
+- Taking stock at any point: what they have concluded and what proved it, and
+  which threads they have not pulled.
 - Their own notebook, which they can write in, strike and amend.
-- A `hint`, which costs no turn but is recorded and read out with the final
-  verdict. They should hear that price *before* they spend one, not after.
+- A `hint`, which is recorded and read out with the final verdict. They should
+  hear that price *before* they spend one, not after.
 
 If they would rather read their records than ask for them, `/casebook` lays all
 of it out on pages — ←/→ between pages, `q` to close, in a terminal of their
@@ -131,6 +131,23 @@ silence is the one behaviour the whole game rests on — a narrator that leaks
 warm/cold here turns detection into guessing, and the case is over. `accuse` then grades on two
 independent axes, correctness and provability, which is why `lucky guess` is a
 real outcome alongside `airtight`.
+
+**There is no clock, and the endgame counts only what the player leaned on.**
+`state.turns` advances so that notes and suspicions carry a chronology, and
+nothing reads it — no deadline, no scoring, no escalation. So the narrator must
+never warn a player that an action costs them something: looking, going, asking
+and searching are all free, and a player who thinks their wandering is being
+tallied investigates more timidly than the design wants. Two references settled
+this. The Séance of Blake Manor stops its clock for travel and for thinking,
+charging only for investigative choices; Danganronpa scores a trial on wrong
+assertions and never times the investigation at all.
+
+What `accuse` reports instead is `how_you_got_here`: the assist level and how
+many conclusions it drew, hints spent, earlier accusations, conclusions voiced
+and never carried, and clues held that nothing rests on. Counts, read out flat.
+It is not a second grade — `lestrade` handing over four conclusions is what
+`lestrade` is for — and it exists so the difficulty dial is visible at the end
+rather than free.
 
 **Assist levels are `auto_infer`'s only job.** `holmes` infers nothing,
 `watson` (default) auto-resolves non-critical revelations so the player spends

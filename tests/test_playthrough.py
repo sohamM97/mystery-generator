@@ -711,6 +711,47 @@ def main():
     check("...and reads back as nothing shown yet",
           Engine(case, old).journal()["within_reach"] == [])
 
+    # The verdict rules on two things: right person, and provable. Neither can
+    # show that a case was solved with four conclusions handed over and three
+    # hints spent. This is that record, and it is counts only — never a score.
+    print("\n[17] the verdict says how they got there")
+    lest = Engine(case, State(assist="lestrade"))
+    lest.examine("body"); lest.examine("wristwatch"); lest.travel("control")
+    lest.examine("duty log")
+    got = lest.accuse("mbeki")["how_you_got_here"]
+    check("the read-out names the assist level", got["assist"] == "lestrade")
+    check("...and counts what the game drew for them", got["conclusions_given"] > 0)
+    check("...apart from what they reasoned to",
+          got["conclusions_reasoned"] + got["conclusions_given"] == len(lest.state.held))
+
+    cold = Engine(case, State(assist="holmes"))
+    cold.examine("body"); cold.examine("wristwatch"); cold.travel("control")
+    cold.examine("duty log")
+    cold_got = cold.accuse("mbeki")["how_you_got_here"]
+    check("holmes hands over nothing, and the read-out shows it",
+          cold_got["conclusions_given"] == 0)
+
+    check("a hint spent is carried into the verdict", cold.hint() and
+          cold.accuse("mbeki")["how_you_got_here"]["hints_used"] == 1)
+    check("earlier accusations are counted, this one excluded",
+          cold.accuse("mbeki")["how_you_got_here"]["earlier_accusations"] == 2)
+
+    check("evidence no conclusion rests on is counted",
+          cold_got["clues_never_used"] == len(cold.board()["unattached_clues"]))
+    check("...and conclusions stated but never carried",
+          cold_got["never_established"] == 0)
+    cold.deduce("r_culprit_mbeki", as_stated="mbeki did it")
+    check("...which a hunch that never landed increases",
+          cold.accuse("mbeki")["how_you_got_here"]["never_established"] == 1)
+
+    # It is a record, not a verdict of its own. Nothing in it may read as
+    # praise or reproach, and it must not reveal which ideas were right.
+    guidance = cold.accuse("mbeki")["narrator_guidance"]
+    check("the guidance forbids reading it as a second score",
+          "not a second score" in guidance and "never be delivered as praise" in guidance)
+    check("...and forbids saying what the unused evidence would have proved",
+          "saying what it would have proved" in guidance)
+
     print(f"\n{len(passed)} passed, {len(failed)} failed")
     if failed:
         for f_ in failed:

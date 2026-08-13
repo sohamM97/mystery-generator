@@ -30,6 +30,20 @@ HUNCH_GUIDANCE = (
     "it: a longer answer for a better guess is the same leak."
 )
 
+ARRIVAL_GUIDANCE = (
+    " Read `how_you_got_here` out after the verdict, plainly and as counts. It is a "
+    "record of how they arrived, not a second score: nothing in it makes a solve "
+    "better or worse, and it must never be delivered as praise or as a telling-off. "
+    "`conclusions_given` is what the assist level drew for them and "
+    "`conclusions_reasoned` is what they reached themselves — say both, name the "
+    "level, and leave the comparison to them. `never_established` counts conclusions "
+    "they put into words and never carried; call those what they were, ideas that "
+    "stayed ideas, and do not now reveal which were right. `clues_never_used` is "
+    "evidence they hold that no conclusion of theirs rests on — read the number and "
+    "stop, because saying what it would have proved rewrites the case they just "
+    "finished into the one they should have played."
+)
+
 NOTE_GUIDANCE = (
     "Acknowledge in one line and get out of the way. Do NOT react to the content: "
     "never agree, never correct, never let the phrasing warm or cool. A note the "
@@ -704,6 +718,7 @@ class Engine:
             "evidence_score": round(evidential, 2),
             "hints_used": self.state.hints_used,
             "unproved_hunches": [h for h in self.state.hunches if h not in self.state.held],
+            "how_you_got_here": self._how_they_got_here(),
         }
 
         if right_person:
@@ -723,7 +738,7 @@ class Engine:
                 "miss, and a high one on a coincidental word is not a hit. If the "
                 "support scores are low, say so honestly — they got there, but the case would "
                 "not have held in court. If motive_matched or method_matched is false, walk "
-                "through the part they misread."
+                "through the part they misread." + ARRIVAL_GUIDANCE
             )
         else:
             verdict["grade"] = "wrong"
@@ -745,11 +760,13 @@ class Engine:
                     "clue that breaks it. If `had_refutation` is non-empty, the player was "
                     "holding the refutation and read past it; let that sting land. Then give "
                     "them the choice to keep working rather than ending the case."
+                    + ARRIVAL_GUIDANCE
                 )
             else:
                 verdict["narrator_guidance"] = (
                     "Wrong, and not even a theory the case supports. Don't mock. Show one clue "
                     "that flatly contradicts the accusation and let them reconsider."
+                    + ARRIVAL_GUIDANCE
                 )
         self.state.accusations.append({"culprit": culprit, "correct": right_person})
         if right_person:
@@ -1035,6 +1052,46 @@ class Engine:
         """Who reached this conclusion — the player, or the assist level."""
         return "the game" if rid in self.state.inferred else "you"
 
+    def _unattached_clues(self) -> list[dict]:
+        """Clues in hand that none of the player's conclusions rest on."""
+        supporting = {
+            cid for rid in self.state.held
+            if (rev := self.case.revelation(rid))
+            for cid in rev.clues if cid in self.state.found
+        }
+        return [
+            {"id": c.id, "headline": c.headline}
+            for cid in self.state.found
+            if cid not in supporting and (c := self.case.clue(cid))
+        ]
+
+    def _how_they_got_here(self) -> dict:
+        """What the player leaned on, counted for the final read-out.
+
+        Not a score and not a penalty. The verdict already rules on two
+        things — whether they named the right person, and whether they could
+        have proved it. This says how they arrived, which the two scores
+        cannot: a case solved on `lestrade` with four conclusions handed over
+        and three hints spent reads identically to one solved cold, and the
+        player deserves to see the difference.
+
+        Every number here is drawn from what the player already did. Nothing
+        is withheld during play and revealed at the end.
+        """
+        given = [r for r in self.state.held if r in self.state.inferred]
+        return {
+            "assist": self.state.assist,
+            "conclusions_reasoned": len(self.state.held) - len(given),
+            "conclusions_given": len(given),
+            "hints_used": self.state.hints_used,
+            "earlier_accusations": len(self.state.accusations),
+            "never_established": len(
+                [h for h in self.state.hunches if h not in self.state.held]),
+            "clues_found": len(self.state.found),
+            "clues_total": len(self.case.clues),
+            "clues_never_used": len(self._unattached_clues()),
+        }
+
     def board(self) -> dict:
         """The case board: what the player has concluded, and what proved it.
 
@@ -1077,16 +1134,7 @@ class Engine:
                 entry["resting_on_minimum"] = held <= rev.support_needed
             chain.append(entry)
 
-        supporting = {
-            cid for rid in self.state.held
-            if (rev := self.case.revelation(rid))
-            for cid in rev.clues if cid in self.state.found
-        }
-        loose = [
-            {"id": c.id, "headline": c.headline}
-            for cid in self.state.found
-            if cid not in supporting and (c := self.case.clue(cid))
-        ]
+        loose = self._unattached_clues()
 
         out = {
             "assist": assist,
