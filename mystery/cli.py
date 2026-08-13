@@ -250,9 +250,16 @@ def cmd_frontier(args) -> int:
 
 
 def cmd_hint(args) -> int:
+    """A nudge, charged once — to the grade, never to the clock.
+
+    `hints_used` is recorded and read out with the final verdict, and that is
+    the whole price. Spending a turn on top would charge twice for one thing,
+    and the player is told the price before they decide: the skills promise a
+    hint costs no turn, and this is where that promise is kept.
+    """
     sealed, engine = _open(args.case)
     _emit(engine.hint())
-    _close(sealed, engine)
+    _save(sealed, engine)
     return 0
 
 

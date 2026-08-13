@@ -630,6 +630,30 @@ def main():
                   "undo" not in help_text and "scratch" not in help_text)
             check("...and no placeholder is left where they were",
                   "SUPPRESS" not in help_text)
+
+            # A hint is paid for once, in the grade. Charging a turn as well
+            # would price it twice, and the skills promise the player it costs
+            # no turn before they decide whether to spend one.
+            print("\n[15] a hint is charged to the grade, not the clock")
+            _, h_copy = run("scratch", "--case", live)
+            hc = h_copy["case"]
+            before = State.load(os.path.join(hc, "state.json"))
+            run("hint", "--case", hc)
+            after = State.load(os.path.join(hc, "state.json"))
+            check("a hint spends no turn", after.turns == before.turns)
+            check("...and does not count against the run of empty turns",
+                  after.turns_since_progress == before.turns_since_progress)
+            check("...but is recorded", after.hints_used == before.hints_used + 1)
+            _, verdict = run("accuse", "--case", hc, "mbeki")
+            check("...and is read out with the verdict", verdict["hints_used"] == 1)
+
+            # Taking stock stays free too, and for the same reason: it holds
+            # nothing the player has not already earned.
+            free_before = State.load(os.path.join(hc, "state.json")).turns
+            for cmd in ("journal", "board", "cast", "frontier", "casebook", "status"):
+                run(cmd, "--case", hc)
+            check("taking stock spends no turn",
+                  State.load(os.path.join(hc, "state.json")).turns == free_before)
         finally:
             os.chdir(cwd)
     finally:
@@ -638,7 +662,7 @@ def main():
     # The narrator is the only thing that remembers a conversation, and a
     # conversation can be trimmed. Without this, a player returning to a case
     # pays a turn to be told what their detective is looking straight at.
-    print("\n[15] a room remembers what it has already shown")
+    print("\n[16] a room remembers what it has already shown")
     sh = Engine(case, State(assist="watson"))
     check("a room that has not been looked at shows nothing",
           sh.journal()["within_reach"] == [])
