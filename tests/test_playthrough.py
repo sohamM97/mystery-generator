@@ -635,6 +635,58 @@ def main():
     finally:
         shutil.rmtree(tmp)
 
+    # The narrator is the only thing that remembers a conversation, and a
+    # conversation can be trimmed. Without this, a player returning to a case
+    # pays a turn to be told what their detective is looking straight at.
+    print("\n[15] a room remembers what it has already shown")
+    sh = Engine(case, State(assist="watson"))
+    check("a room that has not been looked at shows nothing",
+          sh.journal()["within_reach"] == [])
+    shown = sh.look()["examinable"]
+    check("looking records what the room named",
+          sh.state.shown[sh.state.at] == sorted(shown))
+    check("...and the journal reads it back for free",
+          sh.journal()["within_reach"] == sorted(shown))
+    turns_before = sh.state.turns
+    sh.journal()
+    check("...without spending a turn", sh.state.turns == turns_before)
+
+    sh.travel("control")
+    check("arriving somewhere records that room too",
+          sh.state.shown["control"] == sorted(sh.look()["examinable"]))
+    check("...and the journal follows the detective",
+          sh.journal()["within_reach"] == sh.state.shown["control"])
+    check("the room they left is remembered separately",
+          "mast" in sh.state.shown and sh.state.shown["mast"] != sh.state.shown["control"])
+
+    # Only what was displayed is remembered. The office holds a safe gated on
+    # r_safe_combination: the room does not name it until the player works the
+    # combination out, so the free read-back must not hand it to them early.
+    gate = Engine(case, State(assist="watson"))
+    gate.travel("control")
+    gate.travel("office")
+    check("a thing still gated when they looked is not in the read-back",
+          "safe" not in gate.journal()["within_reach"])
+    gate.examine("photograph")
+    gate.travel("mess")
+    gate.ask("ivy", "safe")
+    check("...until the conclusion that opens it is drawn",
+          "r_safe_combination" in gate.state.held)
+    before = list(gate.state.shown["office"])
+    gate.travel("office")
+    check("...and then a fresh look adds it", "safe" in gate.journal()["within_reach"])
+    check("...without dropping what the room named the first time",
+          all(ref in gate.state.shown["office"] for ref in before))
+
+    # Cases played before this field existed have a state file without it.
+    old_path = os.path.join(tempfile.mkdtemp(), "state.json")
+    with open(old_path, "w", encoding="utf-8") as fh:
+        fh.write('{"assist": "watson", "at": "mast", "turns": 4}')
+    old = State.load(old_path)
+    check("a state file written without the field still loads", old.shown == {})
+    check("...and reads back as nothing shown yet",
+          Engine(case, old).journal()["within_reach"] == [])
+
     print(f"\n{len(passed)} passed, {len(failed)} failed")
     if failed:
         for f_ in failed:

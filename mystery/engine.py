@@ -53,6 +53,13 @@ class State:
     # tally for the endgame; this is the only version anyone gets to read.
     hypotheses: list[dict] = field(default_factory=list)
     visited: list[str] = field(default_factory=list)
+    # Location id -> the examinable refs that location has already displayed.
+    # Written whenever `look` names them, so that reminding a player what is
+    # within reach costs nothing: they have been told already, and a narrator
+    # who has lost the conversation should not have to charge them a turn to
+    # hear it twice. Only what was displayed goes in, which is why a thing
+    # ungated by a later deduction still costs a turn to find.
+    shown: dict[str, list[str]] = field(default_factory=dict)
     asked: list[str] = field(default_factory=list)  # source keys already used
     turns: int = 0
     turns_since_progress: int = 0
@@ -152,6 +159,11 @@ class Engine:
         here = [c for c in self.case.clues
                 if c.source.at == loc.id and self.clue_available(c)]
         people = self._people_at(loc.id)
+        examinable = sorted({c.source.ref for c in here if c.source.kind == "examine"})
+        # The room has now named these, so the player is owed them for free from
+        # here on. Union rather than replace: a ref stays remembered even if the
+        # clue behind it stops being available later.
+        self.state.shown[loc.id] = sorted(set(self.state.shown.get(loc.id, [])) | set(examinable))
         return {
             "location": loc.name,
             "description": loc.desc,
@@ -161,7 +173,7 @@ class Engine:
                 if x in reachable and (n := self.case.location(x))
             ],
             "people_here": people,
-            "examinable": sorted({c.source.ref for c in here if c.source.kind == "examine"}),
+            "examinable": examinable,
             "searchable": any(c.source.kind == "search" for c in here),
             "unfound_here": sum(1 for c in here if c.id not in self.state.found),
         }
@@ -974,6 +986,7 @@ class Engine:
         return {
             "assist": self.state.assist,
             "location": (l.name if (l := self.case.location(self.state.at)) else "?"),
+            "within_reach": self.state.shown.get(self.state.at, []),
             "clues": [
                 {"id": c.id, "kind": c.kind, "headline": c.headline,
                  "detail": c.detail, "supports_count": len(c.supports)}
@@ -1001,7 +1014,12 @@ class Engine:
                 "`notes` are the player's own words: "
                 "quote them back untouched and pass no judgement on them. Ones marked "
                 "`struck` are crossed out but still on the page — render them struck "
-                "through, never omit them.",
+                "through, never omit them. `within_reach` is what this room has already "
+                "named to the player: read it back for free, because they have been told "
+                "once and a reminder is not new. An empty list means they have not looked "
+                "around here yet — offer them the turn rather than spending it. It is what "
+                "the room displayed, not everything the room holds, so never present it as "
+                "a complete inventory of the place.",
         }
 
     def _suspicions_view(self) -> list[dict]:

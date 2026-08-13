@@ -1,7 +1,7 @@
 ---
 description: Look closely at something, or see what there is to look at
 argument-hint: [the thing to examine · omit to see what is here]
-allowed-tools: Bash(python3 -m mystery.cli examine:*), Bash(python3 -m mystery.cli look:*), Bash(ls cases/*)
+allowed-tools: Bash(python3 -m mystery.cli examine:*), Bash(python3 -m mystery.cli look:*), Bash(python3 -m mystery.cli journal:*), Bash(ls cases/*)
 ---
 
 ## Which case
@@ -14,15 +14,19 @@ which before running anything.
 
 The player wants the room's contents, not a new perception of it.
 
-**First, check whether you already have them.** Every `look` and every `go`
-returns `examinable` for that room. If one of those results for the room they
-are standing in is already in this conversation, read the list back from it.
-That is free and spends no turn: it is not the engine telling you something
-new, it is you repeating what it already said. Say plainly that this is what
-you were shown when they arrived.
+**First, ask the engine what this room has already shown them.** `journal`
+carries `within_reach`: the examinable refs this room named when they looked
+around or arrived. It is free and spends no turn, because it is not the engine
+telling you something new — it is the room repeating itself. Read that list
+back and say plainly it is what they were shown.
 
-**Only if you have no such result** — they have been moved by something else,
-or the conversation has been trimmed — run:
+Do not go hunting through the conversation for an older `look` result. The
+engine records this precisely so that a trimmed conversation, or a session that
+picked the case up cold, does not cost the player a turn to be told what their
+detective is looking straight at.
+
+**Only if `within_reach` is empty** — they have genuinely not looked around
+here yet — run:
 
 ```
 python3 -m mystery.cli look --case cases/<slug>
