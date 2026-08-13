@@ -51,8 +51,19 @@ def main():
     check("...and the flag names the room and the thing",
           any(room.id in i.message and examined.source.ref in i.message
               for i in unseen))
-    check("...as a warning, not an error — it is unfair, not unsolvable",
-          validate(blinded).ok)
+    check("...as an error, so seal refuses it without --force",
+          not validate(blinded).ok)
+
+    # The matcher must not dictate prose. A yard described as "four steps down"
+    # shows the player its bottom step, and only the noun the ref ends on may
+    # carry that — otherwise `coal chute` would pass in a room mentioning coal.
+    from mystery.validate import _describes
+    check("a description naming the whole thing shows a part of it",
+          _describes("bottom step", "four steps down, a coal chute, a standpipe"))
+    check("...but a part-word alone is not enough",
+          not _describes("coal chute", "a scuttle of coal by the range"))
+    check("...and an object nothing describes stays unseen",
+          not _describes("coat", "a range going low, a scrubbed table"))
 
     print("\n[2] seal round-trips and resists tampering")
     key = new_key()

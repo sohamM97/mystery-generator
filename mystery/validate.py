@@ -19,6 +19,22 @@ from .schema import Case, CLUE_KINDS, RELIABILITY
 # thing, so validation and play agree on what is visible.
 from .engine import Engine
 
+
+def _describes(ref: str, desc: str) -> bool:
+    """Can a player standing in this room see the thing named by `ref`?
+
+    The whole phrase counts, and so does the noun it ends on: a yard described
+    as "four steps down" shows the player its `bottom step`, and demanding the
+    author write the words "bottom step" would be the matcher dictating prose.
+    Only the last word is allowed to carry it — matching on any word would let
+    `coal chute` pass in a room that merely mentions coal, which is a chute
+    nobody can see.
+    """
+    if Engine._mentioned_in(ref, desc):
+        return True
+    head = Engine._normalise(ref).split()
+    return len(head) > 1 and Engine._mentioned_in(head[-1], desc)
+
 # Knox #1: the culprit must be someone the reader has met early. Expressed as a
 # fraction of the acts in the case.
 CULPRIT_INTRO_FRACTION = 0.34
@@ -173,10 +189,10 @@ def _check_references(case: Case, rep: Report) -> None:
     for loc in case.locations:
         for ref in sorted({c.source.ref for c in case.clues
                            if c.source.kind == "examine" and c.source.at == loc.id}):
-            if not Engine._mentioned_in(ref, loc.desc):
-                rep.warn("UNSEEN_OBJECT",
-                         f"location {loc.id!r} has examinable {ref!r} that its own "
-                         f"description never mentions — the player cannot see it")
+            if not _describes(ref, loc.desc):
+                rep.error("UNSEEN_OBJECT",
+                          f"location {loc.id!r} has examinable {ref!r} that its own "
+                          f"description never mentions — the player cannot see it")
 
     for clue in case.clues:
         if clue.kind not in CLUE_KINDS:

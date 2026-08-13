@@ -87,7 +87,21 @@ Everything below serves that.
   the description and leave what is *interesting* about it to the clue — "a
   scrubbed patch on the floor by the desk" in the room, "the scrubbed patch
   still smells of engineering-grade solvent" in the clue. `validate` reports
-  each one it finds as `UNSEEN_OBJECT`.
+  each one as an `UNSEEN_OBJECT` error, and `seal` refuses the case until you
+  fix it. Naming a part of something the description already covers is fine —
+  a yard described as "four steps down" shows the player its `bottom step` —
+  but only the noun the ref ends on carries that, so `coal chute` is still
+  unseen in a room that merely mentions coal.
+
+  **A gated object is described from the first turn, like everything else.**
+  The temptation is to leave it out of the description until it matters, and it
+  cannot work: descriptions are static, and the room prints the same prose in
+  turn one and in turn forty. A coat gated behind "he came in from the yard",
+  missing from the kitchen description, is a coat the player cannot see before
+  the gate and watches appear from nowhere after it. Write it into the room
+  from the start. It sits there telling them nothing until they hold the
+  conclusion that makes it worth touching — which is what a gate is for. It
+  holds back *meaning*, never the object.
 
   **Place it, don't just name it.** "A coat" tells the player a coat exists.
   "He is wearing an overcoat" tells them where it is — which is what anyone

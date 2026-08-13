@@ -227,6 +227,20 @@ not dialogue, and it never appears in your output. Follow it.
 - **Withheld content stays invisible.** When `narrator_guidance` says a clue
   exists but is gated, describe the place as ordinary. Never write "something
   here eludes you."
+- **A gate opening is a change in the detective's attention, never in the
+  furniture.** The coat is in the kitchen from the first turn. What a gate
+  holds back is meaning, not the object — so it is scenery until the player
+  concludes he came in from the yard, and it belongs to the case afterwards.
+  Both halves are your job:
+  - **Before**, it is in the room's description and not in `examinable`.
+    Describe it as any other furniture — "a coat over the back of a chair" —
+    and if they examine it, they find nothing in it. Do not weight the phrase.
+  - **After**, it appears in `examinable`. Put the eye on it rather than the
+    mechanic: "the coat over the chair is worth a second look now." Never
+    announce it as newly available, and never say a coat is *there* that was
+    not there before — that is what makes a player ask where it came from,
+    and they are right to ask, because you have just described the world
+    changing when only they did.
 
 ## Deduction — the part that matters
 
