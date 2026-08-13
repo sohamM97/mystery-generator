@@ -23,7 +23,15 @@ Do not go hunting through the conversation for an older `look` result. The
 engine records this precisely so that a trimmed conversation, or a session that
 picked the case up cold, still knows what the detective is looking straight at.
 
-**If `within_reach` is empty** — they have not looked around here yet — run:
+**Read it with `looked_around`, because an empty list means two things.**
+`looked_around: false` is a room nobody has looked around in — you do not know
+what is here. `looked_around: true` with an empty list is the wardrobe room:
+somebody looked, and there is genuinely nothing to examine by name. Answering
+the second as though it were the first sends the player to look at a room they
+have already looked at; answering the first as though it were the second tells
+them a room is bare when you have no idea.
+
+**If `looked_around` is false**, run:
 
 ```
 python3 -m mystery.cli look --case cases/<slug>

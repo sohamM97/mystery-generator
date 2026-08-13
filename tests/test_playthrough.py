@@ -666,11 +666,21 @@ def main():
     sh = Engine(case, State(assist="watson"))
     check("a room that has not been looked at shows nothing",
           sh.journal()["within_reach"] == [])
+    check("...and says so, rather than passing for a room holding nothing",
+          sh.journal()["looked_around"] is False)
     shown = sh.look()["examinable"]
     check("looking records what the room named",
           sh.state.shown[sh.state.at] == sorted(shown))
     check("...and the journal reads it back for free",
           sh.journal()["within_reach"] == sorted(shown))
+    check("...marked as looked at", sh.journal()["looked_around"] is True)
+
+    # The wardrobe room's trap: looked at, and genuinely holding nothing. It
+    # must not read the same as a room nobody has walked into.
+    bare = Engine(case, State(assist="watson"))
+    bare.state.shown[bare.state.at] = []
+    check("a room looked at and holding nothing is told apart from an unvisited one",
+          bare.journal()["within_reach"] == [] and bare.journal()["looked_around"] is True)
     turns_before = sh.state.turns
     sh.journal()
     check("...without spending a turn", sh.state.turns == turns_before)

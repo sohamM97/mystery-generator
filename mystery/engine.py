@@ -1004,6 +1004,12 @@ class Engine:
             "assist": self.state.assist,
             "location": (l.name if (l := self.case.location(self.state.at)) else "?"),
             "within_reach": self.state.shown.get(self.state.at, []),
+            # An empty `within_reach` has two meanings and the narrator has to
+            # tell them apart: the wardrobe room holds nothing to examine by
+            # name, and a room nobody has looked around in yet holds an unknown
+            # number. Both read as `[]`, so the fact of having looked is its
+            # own flag.
+            "looked_around": self.state.at in self.state.shown,
             "clues": [
                 {"id": c.id, "kind": c.kind, "headline": c.headline,
                  "detail": c.detail, "supports_count": len(c.supports)}
@@ -1032,11 +1038,15 @@ class Engine:
                 "quote them back untouched and pass no judgement on them. Ones marked "
                 "`struck` are crossed out but still on the page — render them struck "
                 "through, never omit them. `within_reach` is what this room has already "
-                "named to the player: read it back for free, because they have been told "
-                "once and a reminder is not new. An empty list means they have not looked "
-                "around here yet — offer them the turn rather than spending it. It is what "
-                "the room displayed, not everything the room holds, so never present it as "
-                "a complete inventory of the place.",
+                "named to the player: read it back freely, because they have been told "
+                "once and a reminder is not new. Read it with `looked_around`, because an "
+                "empty list means two different things. `looked_around: false` means nobody "
+                "has looked around here yet, and you do not know what is here — look before "
+                "you answer. `looked_around: true` with an empty list means the room holds "
+                "nothing to examine by name, and the player is owed that plainly: say so "
+                "rather than describing the room and stopping, or they will read your "
+                "scenery as a list of leads. `within_reach` is what the room displayed, "
+                "not everything it holds, so never present it as a complete inventory.",
         }
 
     def _suspicions_view(self) -> list[dict]:
