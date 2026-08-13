@@ -61,8 +61,9 @@ listing him between a coat and a lamp buries him.
 
 **An empty list is an answer, not a blank.** The covered way has corrugated
 iron, a swinging bulb and drifted snow in its description and nothing at all in
-its examinable list. Say so — "nothing in here invites a closer look" — rather
-than describing the room and stopping. A player who is not told
+its examinable list. Say so in the detective's own register — "nothing in here
+asks anything of you" — rather than describing the room and stopping, and
+without reaching for the field name or calling it scenery. A player who is not told
 will read your scenery as a list of leads and start naming nouns out of it.
 
 ## With an argument: look closely at it
@@ -96,7 +97,8 @@ look is pointless.
   as *there is no tarpaulin* and contradicts the sentence you wrote a moment
   before. The engine said something narrower: it has nothing filed under that
   name. Leave the tarpaulin where it is — "nothing about it detains you" — and
-  then name what the place does hold, which is the thing they were missing. Say once, when a noun of theirs first misses, that a room description
+  then name what here does repay a closer look, which is the thing they were
+  missing. Say it in the fiction: the field names are yours, not theirs. Say once, when a noun of theirs first misses, that a room description
   is scenery and only some of what it names is a target. Until someone says it,
   a player reads every noun in your prose as a lead.
 - **Withheld content stays invisible.** When the guidance says a clue exists
