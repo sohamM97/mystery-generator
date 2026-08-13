@@ -25,6 +25,12 @@ must be in the first third), `secrets[]` (never shown; keeps the narrator
 consistent), `locked_topics{topic: revelation_id}` (this character deflects
 until you know something).
 
+`age` and `gender` are optional, free text, and shown on the casebook's cast
+page when present. Both are strings: authors write "forty-one" and "in her
+fifties", and a number cannot hold the second. Leave either out and the
+casebook omits it rather than showing a blank — the engine never infers a
+gender from a name, so an unrecorded one stays unrecorded.
+
 ## locations[]
 
 `id`, `name`, `desc`, `connects[]`, `gates[]` (revelation ids — the location is
@@ -46,6 +52,14 @@ invisible and unreachable until they're held).
 
 The `supports` ↔ `clues` mirror is enforced. Asymmetry means the author changed
 their mind halfway and left the case in two states.
+
+A `topic` is matched on content words, not on the exact string: a topic written
+`front door` is reached by "the front door" and by "what do you know about the
+front door?". Two things follow for the author. Write topics as the subject
+itself — `front door`, not `ask about the door` — since only the content words
+survive. And keep one character's topics distinct from each other: wording that
+fits two of them equally reaches neither, because guessing between them would
+spend the player's turn on a question they did not ask.
 
 ## revelations[]
 

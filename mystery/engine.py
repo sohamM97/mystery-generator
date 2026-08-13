@@ -30,6 +30,36 @@ HUNCH_GUIDANCE = (
     "it: a longer answer for a better guess is the same leak."
 )
 
+LOOK_GUIDANCE = (
+    "Describe the place, then say what is within reach. `people_you_can_speak_to` is "
+    "who has something to say here, not who is standing where: the engine tracks "
+    "nobody's position. Write it as reach — 'Maureen Cade is about, if you want her' — "
+    "never as a body in a fixed spot, because the same person answers in two rooms and "
+    "a player told twice that she is standing in front of them will ask how she moved. "
+    "An empty `examinable` is an answer and the player is owed it: say plainly that "
+    "nothing here invites a closer look, or they will read your scenery as a list of "
+    "leads and name nouns out of it one at a time. Anything `examinable` holds that "
+    "the description never mentioned goes into the prose first — a `body` in the list "
+    "means a man is lying on the floor, and listing him between a coat and a lamp "
+    "buries him. Never mention `searchable` in either direction: it says whether this "
+    "place has something to find, and turning that into 'worth a look' or 'nothing "
+    "here for you' hands the player a nudge they did not earn. Same for `unfound_here`."
+)
+
+ARRIVAL_GUIDANCE = (
+    " Read `how_you_got_here` out after the verdict, plainly and as counts. It is a "
+    "record of how they arrived, not a second score: nothing in it makes a solve "
+    "better or worse, and it must never be delivered as praise or as a telling-off. "
+    "`conclusions_given` is what the assist level drew for them and "
+    "`conclusions_reasoned` is what they reached themselves — say both, name the "
+    "level, and leave the comparison to them. `never_established` counts conclusions "
+    "they put into words and never carried; call those what they were, ideas that "
+    "stayed ideas, and do not now reveal which were right. `clues_never_used` is "
+    "evidence they hold that no conclusion of theirs rests on — read the number and "
+    "stop, because saying what it would have proved rewrites the case they just "
+    "finished into the one they should have played."
+)
+
 NOTE_GUIDANCE = (
     "Acknowledge in one line and get out of the way. Do NOT react to the content: "
     "never agree, never correct, never let the phrasing warm or cool. A note the "
@@ -53,6 +83,13 @@ class State:
     # tally for the endgame; this is the only version anyone gets to read.
     hypotheses: list[dict] = field(default_factory=list)
     visited: list[str] = field(default_factory=list)
+    # Location id -> the examinable refs that location has already displayed.
+    # Written whenever `look` names them, so that reminding a player what is
+    # within reach costs nothing: they have been told already, and a narrator
+    # who has lost the conversation should not have to charge them a turn to
+    # hear it twice. Only what was displayed goes in, which is why a thing
+    # ungated by a later deduction still costs a turn to find.
+    shown: dict[str, list[str]] = field(default_factory=dict)
     asked: list[str] = field(default_factory=list)  # source keys already used
     turns: int = 0
     turns_since_progress: int = 0
@@ -152,6 +189,11 @@ class Engine:
         here = [c for c in self.case.clues
                 if c.source.at == loc.id and self.clue_available(c)]
         people = self._people_at(loc.id)
+        examinable = sorted({c.source.ref for c in here if c.source.kind == "examine"})
+        # The room has now named these, so the player is owed them for free from
+        # here on. Union rather than replace: a ref stays remembered even if the
+        # clue behind it stops being available later.
+        self.state.shown[loc.id] = sorted(set(self.state.shown.get(loc.id, [])) | set(examinable))
         return {
             "location": loc.name,
             "description": loc.desc,
@@ -160,10 +202,16 @@ class Engine:
                 for x in loc.connects
                 if x in reachable and (n := self.case.location(x))
             ],
-            "people_here": people,
-            "examinable": sorted({c.source.ref for c in here if c.source.kind == "examine"}),
+            # Not "people_here": the engine tracks no one's position. This is
+            # everyone with testimony sourced in this room, which is a claim
+            # about who the detective can get hold of and not about where a
+            # body is standing. Maureen Cade answers in her own foyer and her
+            # own kitchen, and nothing says she walked between them.
+            "people_you_can_speak_to": people,
+            "examinable": examinable,
             "searchable": any(c.source.kind == "search" for c in here),
             "unfound_here": sum(1 for c in here if c.id not in self.state.found),
+            "narrator_guidance": LOOK_GUIDANCE,
         }
 
     def _people_at(self, loc_id: str) -> list[dict]:
@@ -301,6 +349,68 @@ class Engine:
                 if want in norm or norm in want]
         return near[0] if len(near) == 1 else ""
 
+    # Words that carry no subject. Dropped from both sides before topics are
+    # compared, so "about the front door" and "front door" are the same
+    # question. Pronouns are deliberately absent: "her letter" and "his letter"
+    # must stay two different subjects.
+    _TOPIC_NOISE = frozenset(
+        "a an the of on in at to and or about with for what when where how "
+        "who did do does was were is are had has have you your tell me say "
+        "said know knew anything something".split()
+    )
+
+    @classmethod
+    def _topic_words(cls, topic: str) -> set[str]:
+        """The content words of a topic, crudely singularised."""
+        words = set()
+        for w in cls._normalise(topic).split():
+            if w in cls._TOPIC_NOISE:
+                continue
+            # "returns" and "return" are the same subject; "gs" is not a word
+            # anyone typed, so only strip the s off something long enough.
+            if len(w) > 3 and w.endswith("s") and not w.endswith("ss"):
+                w = w[:-1]
+            words.add(w)
+        return words
+
+    def _resolve_topic(self, char_id: str, topic: str) -> str:
+        """Match what the player asked to the subject the author wrote.
+
+        Topics are keyed by exact string, so a narrator typing plausible
+        English at a subject it cannot see would miss almost every time — and
+        an `ask` costs a turn whether or not it lands. "the front door" finds
+        a topic written "front door" here.
+
+        Exact match first, then the topic sharing the most content words, and
+        only when it shares at least half of the shorter side. A tie resolves
+        to no match: two subjects that both half-fit means the player was
+        ambiguous, and guessing between them spends their turn on a question
+        they didn't ask.
+        """
+        topics = {c.source.topic for c in self.case.clues
+                  if c.source.kind == "ask" and c.source.ref == char_id}
+        by_norm = {self._normalise(t): t for t in topics}
+        want_norm = self._normalise(topic)
+        if want_norm in by_norm:
+            return by_norm[want_norm]
+
+        want = self._topic_words(topic)
+        if not want:
+            return ""
+        scored = []
+        for t in topics:
+            have = self._topic_words(t)
+            if not have:
+                continue
+            shared = len(want & have)
+            if shared and shared / min(len(want), len(have)) >= 0.5:
+                scored.append((shared, t))
+        if not scored:
+            return ""
+        best = max(s for s, _ in scored)
+        winners = [t for s, t in scored if s == best]
+        return winners[0] if len(winners) == 1 else ""
+
     @classmethod
     def _mentioned_in(cls, ref: str, text: str) -> bool:
         """Does the room's own description name this thing?"""
@@ -314,6 +424,11 @@ class Engine:
         ch = self.case.character(char_id)
         if not ch:
             return {"ok": False, "error": f"no such person: {char_id}"}
+        # The subject the author wrote, if the player's wording points at one.
+        # Everything downstream uses it: a locked subject must deflect however
+        # the player phrased it, and `asked` should record one question asked
+        # once rather than three spellings of it.
+        topic = self._resolve_topic(char_id, topic) or topic
         for locked_topic, required in ch.locked_topics.items():
             if locked_topic.lower() in topic.lower() and required not in self.state.held:
                 return {
@@ -530,17 +645,34 @@ class Engine:
             if have >= rev.support_needed:
                 ripe.append(rev.id)
 
-        return {
+        out = {
             "places_with_loose_ends": open_threads,
             "people_with_more_to_say": unasked,
-            "conclusions_you_could_already_draw": len(ripe),
             "clues_found": len(self.state.found),
             "clues_total": len(self.case.clues),
-            "narrator_guidance":
-                "Render this as the detective taking stock — 'I have not been back to the X' — "
-                "never as a checklist. `conclusions_you_could_already_draw` is a count only: "
-                "say the evidence on the table may already be enough, never say for what.",
         }
+        guidance = ("Render this as the detective taking stock — 'I have not been back to "
+                    "the X' — never as a checklist.")
+
+        # The counts above are shape: how much is left where, and with whom.
+        # A count of conclusions that would land right now is a different kind
+        # of thing — it says the evidence in hand is already enough, which is
+        # the judgement `holmes` promises to leave to the player. Knowing the
+        # number went from 0 to 1 tells them to stop searching and start
+        # thinking, and deciding that moment is most of what holmes is for. The
+        # key is absent there rather than zero: a zero reads as "nothing is
+        # ready yet", which is a claim of its own.
+        if self.state.assist != "holmes":
+            out["conclusions_you_could_already_draw"] = len(ripe)
+            guidance += (" `conclusions_you_could_already_draw` is a count only: say the "
+                         "evidence on the table may already be enough, never say for what.")
+        else:
+            guidance += (" This case is on holmes, so you are not told whether anything is "
+                         "ready to be concluded. Do not guess at it, and do not let the "
+                         "shape of the counts stand in for it.")
+
+        out["narrator_guidance"] = guidance
+        return out
 
     def hint(self) -> dict:
         """Escalating nudges. Costs are recorded and show up in the grade."""
@@ -608,6 +740,7 @@ class Engine:
             "evidence_score": round(evidential, 2),
             "hints_used": self.state.hints_used,
             "unproved_hunches": [h for h in self.state.hunches if h not in self.state.held],
+            "how_you_got_here": self._how_they_got_here(),
         }
 
         if right_person:
@@ -627,7 +760,7 @@ class Engine:
                 "miss, and a high one on a coincidental word is not a hit. If the "
                 "support scores are low, say so honestly — they got there, but the case would "
                 "not have held in court. If motive_matched or method_matched is false, walk "
-                "through the part they misread."
+                "through the part they misread." + ARRIVAL_GUIDANCE
             )
         else:
             verdict["grade"] = "wrong"
@@ -649,11 +782,13 @@ class Engine:
                     "clue that breaks it. If `had_refutation` is non-empty, the player was "
                     "holding the refutation and read past it; let that sting land. Then give "
                     "them the choice to keep working rather than ending the case."
+                    + ARRIVAL_GUIDANCE
                 )
             else:
                 verdict["narrator_guidance"] = (
                     "Wrong, and not even a theory the case supports. Don't mock. Show one clue "
                     "that flatly contradicts the accusation and let them reconsider."
+                    + ARRIVAL_GUIDANCE
                 )
         self.state.accusations.append({"culprit": culprit, "correct": right_person})
         if right_person:
@@ -890,6 +1025,13 @@ class Engine:
         return {
             "assist": self.state.assist,
             "location": (l.name if (l := self.case.location(self.state.at)) else "?"),
+            "within_reach": self.state.shown.get(self.state.at, []),
+            # An empty `within_reach` has two meanings and the narrator has to
+            # tell them apart: the wardrobe room holds nothing to examine by
+            # name, and a room nobody has looked around in yet holds an unknown
+            # number. Both read as `[]`, so the fact of having looked is its
+            # own flag.
+            "looked_around": self.state.at in self.state.shown,
             "clues": [
                 {"id": c.id, "kind": c.kind, "headline": c.headline,
                  "detail": c.detail, "supports_count": len(c.supports)}
@@ -917,7 +1059,16 @@ class Engine:
                 "`notes` are the player's own words: "
                 "quote them back untouched and pass no judgement on them. Ones marked "
                 "`struck` are crossed out but still on the page — render them struck "
-                "through, never omit them.",
+                "through, never omit them. `within_reach` is what this room has already "
+                "named to the player: read it back freely, because they have been told "
+                "once and a reminder is not new. Read it with `looked_around`, because an "
+                "empty list means two different things. `looked_around: false` means nobody "
+                "has looked around here yet, and you do not know what is here — look before "
+                "you answer. `looked_around: true` with an empty list means the room holds "
+                "nothing to examine by name, and the player is owed that plainly: say so "
+                "rather than describing the room and stopping, or they will read your "
+                "scenery as a list of leads. `within_reach` is what the room displayed, "
+                "not everything it holds, so never present it as a complete inventory.",
         }
 
     def _suspicions_view(self) -> list[dict]:
@@ -932,6 +1083,46 @@ class Engine:
     def _drawn_by(self, rid: str) -> str:
         """Who reached this conclusion — the player, or the assist level."""
         return "the game" if rid in self.state.inferred else "you"
+
+    def _unattached_clues(self) -> list[dict]:
+        """Clues in hand that none of the player's conclusions rest on."""
+        supporting = {
+            cid for rid in self.state.held
+            if (rev := self.case.revelation(rid))
+            for cid in rev.clues if cid in self.state.found
+        }
+        return [
+            {"id": c.id, "headline": c.headline}
+            for cid in self.state.found
+            if cid not in supporting and (c := self.case.clue(cid))
+        ]
+
+    def _how_they_got_here(self) -> dict:
+        """What the player leaned on, counted for the final read-out.
+
+        Not a score and not a penalty. The verdict already rules on two
+        things — whether they named the right person, and whether they could
+        have proved it. This says how they arrived, which the two scores
+        cannot: a case solved on `lestrade` with four conclusions handed over
+        and three hints spent reads identically to one solved cold, and the
+        player deserves to see the difference.
+
+        Every number here is drawn from what the player already did. Nothing
+        is withheld during play and revealed at the end.
+        """
+        given = [r for r in self.state.held if r in self.state.inferred]
+        return {
+            "assist": self.state.assist,
+            "conclusions_reasoned": len(self.state.held) - len(given),
+            "conclusions_given": len(given),
+            "hints_used": self.state.hints_used,
+            "earlier_accusations": len(self.state.accusations),
+            "never_established": len(
+                [h for h in self.state.hunches if h not in self.state.held]),
+            "clues_found": len(self.state.found),
+            "clues_total": len(self.case.clues),
+            "clues_never_used": len(self._unattached_clues()),
+        }
 
     def board(self) -> dict:
         """The case board: what the player has concluded, and what proved it.
@@ -975,16 +1166,7 @@ class Engine:
                 entry["resting_on_minimum"] = held <= rev.support_needed
             chain.append(entry)
 
-        supporting = {
-            cid for rid in self.state.held
-            if (rev := self.case.revelation(rid))
-            for cid in rev.clues if cid in self.state.found
-        }
-        loose = [
-            {"id": c.id, "headline": c.headline}
-            for cid in self.state.found
-            if cid not in supporting and (c := self.case.clue(cid))
-        ]
+        loose = self._unattached_clues()
 
         out = {
             "assist": assist,
@@ -1018,9 +1200,13 @@ class Engine:
 
     def cast_sheet(self) -> dict:
         """Public dossier. Secrets stay sealed until clued."""
+        # `age` and `gender` are omitted rather than sent empty when the author
+        # left them out, so a reader can tell "not recorded" from a blank.
         return {
             "cast": [
-                {"id": c.id, "name": c.name, "role": c.role, "known": c.public_desc}
+                {"id": c.id, "name": c.name, "role": c.role, "known": c.public_desc,
+                 **({"age": c.age} if c.age else {}),
+                 **({"gender": c.gender} if c.gender else {})}
                 for c in self.case.cast
             ]
         }

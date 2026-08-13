@@ -38,6 +38,14 @@ class Character:
     name: str
     role: str
     public_desc: str
+    # Both optional, both free text, both shown in the casebook when the author
+    # filled them in. Age is a string because authors write "forty-one" and
+    # "in her fifties" and a number cannot hold the second one. Gender is the
+    # author's own word: the engine never infers one from a name, and a
+    # character the author left blank is displayed without the field rather
+    # than with a guess.
+    age: str = ""
+    gender: str = ""
     # Act index in which this character first appears on the page. Knox #1
     # requires the culprit to show up early, so the validator reads this.
     introduced_at: int = 0
@@ -52,6 +60,8 @@ class Character:
             name=_req(d, "name", "character"),
             role=d.get("role", ""),
             public_desc=d.get("public_desc", ""),
+            age=str(d.get("age", "")).strip(),
+            gender=str(d.get("gender", "")).strip(),
             introduced_at=int(d.get("introduced_at", 0)),
             secrets=list(d.get("secrets", [])),
             locked_topics=dict(d.get("locked_topics", {})),

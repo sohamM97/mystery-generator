@@ -32,10 +32,18 @@ case's own `meta.difficulty`, which is fixed when the case is authored and
 cannot be changed afterwards.
 
 Tell them what else is on the table, because none of it is discoverable and all
-of it is free: `board` (what you've concluded, and what proved it), `frontier`
-(threads you haven't pulled), `note` (your own notebook, editable), and `hint`
-— which costs nothing but is recorded and read out with the final verdict, and
-they should hear that *before* they spend one, not after.
+of it is free. Three things, not a catalogue — see "Name three things to the
+player, never six" below:
+
+- Taking stock at any point: what they have concluded and what proved it, and
+  which threads they have not pulled.
+- Their own notebook, which they can write in, strike and amend.
+- A `hint`, which is recorded and read out with the final verdict. They should
+  hear that price *before* they spend one, not after.
+
+If they would rather read their records than ask for them, `/casebook` lays all
+of it out on pages — ←/→ between pages, `q` to close, in a terminal of their
+own. Save that for when they ask; it does not belong in the opening.
 
 Then ask which they want. Don't pick for them, and don't start narrating or
 authoring before they've said.
@@ -57,6 +65,37 @@ The test suite is a single script of hand-rolled `check(label, condition)`
 assertions that plays `examples/ashgrove.case.json` end to end. There is no
 per-test selection flag; to run one section, edit `main()` in
 `tests/test_playthrough.py`.
+
+### Never point `--case` at `cases/` while working on the engine
+
+Anything under `cases/` may be a case somebody is part-way through. `deduce`,
+`note`, `go`, `hint` and the rest write to `cases/<slug>/state.json`, and the
+engine cannot tell a development session from a played turn — both look like
+one CLI call. Testing a change against a live case is how `cases/pierhead`
+ended up holding a suspicion in a player's name that the player never said:
+
+```bash
+# don't — this writes a turn into someone's game
+python3 -m mystery.cli deduce --case cases/pierhead --as-stated "..."
+
+# do — a throwaway copy: same sealed case, same key, its own state
+python3 -m mystery.cli scratch --case cases/pierhead   # -> scratch/pierhead-1
+python3 -m mystery.cli deduce --case scratch/pierhead-1 --as-stated "..."
+```
+
+`scratch/` is gitignored. Delete a copy when you are done with it, or leave it.
+
+Every command that writes state first appends the state it replaced to
+`cases/<slug>/state.history.jsonl`, along with the argv that caused the write —
+which is what makes "who wrote this line" answerable at all. `undo --case <dir>`
+restores the last of those and reports which command it took back. Repeat it to
+walk further back.
+
+`scratch` and `undo` are both left out of `--help`, and neither appears in the
+play skill. Everything a narrator can see it will eventually offer the player,
+and a player who can undo a turn can take back a spent hint or a failed
+accusation — at which point `hints_used` and the accusation record stop meaning
+anything in the final grade. They are repair tools for whoever owns the repo.
 
 ## Architecture
 
@@ -92,6 +131,23 @@ silence is the one behaviour the whole game rests on — a narrator that leaks
 warm/cold here turns detection into guessing, and the case is over. `accuse` then grades on two
 independent axes, correctness and provability, which is why `lucky guess` is a
 real outcome alongside `airtight`.
+
+**There is no clock, and the endgame counts only what the player leaned on.**
+`state.turns` advances so that notes and suspicions carry a chronology, and
+nothing reads it — no deadline, no scoring, no escalation. So the narrator must
+never warn a player that an action costs them something: looking, going, asking
+and searching are all free, and a player who thinks their wandering is being
+tallied investigates more timidly than the design wants. Two references settled
+this. The Séance of Blake Manor stops its clock for travel and for thinking,
+charging only for investigative choices; Danganronpa scores a trial on wrong
+assertions and never times the investigation at all.
+
+What `accuse` reports instead is `how_you_got_here`: the assist level and how
+many conclusions it drew, hints spent, earlier accusations, conclusions voiced
+and never carried, and clues held that nothing rests on. Counts, read out flat.
+It is not a second grade — `lestrade` handing over four conclusions is what
+`lestrade` is for — and it exists so the difficulty dial is visible at the end
+rather than free.
 
 **Assist levels are `auto_infer`'s only job.** `holmes` infers nothing,
 `watson` (default) auto-resolves non-critical revelations so the player spends
@@ -158,6 +214,55 @@ name exactly what is being compared, or cut it. If prior behaviour is genuinely
 needed to explain the current shape, state what it was and why it changed as
 self-contained prose. Before-and-after belongs in the commit message, which is
 about the change.
+
+**Name three things to the player, never six.** Orienting someone is not the
+same as being complete, and a list long enough to feel like a menu gets skimmed
+rather than used. This line was written to a player mid-case and is the mistake:
+
+> board and frontier for taking stock, cast, journal, the notebook (note), and
+> casebook if you'd rather leaf through the lot
+
+Six names, and the player kept none of them. What it should have said:
+
+> Taking stock costs you nothing — ask what you've concluded, what threads are
+> still open, or to jot something in your notebook, any time.
+
+Three things, no command names, and it reads as an offer instead of a form.
+Two specific ways the long version goes wrong, both visible above:
+
+- **Never name a container and its contents in the same breath.** `casebook`
+  *is* the cast, evidence, conclusions, notebook and threads pages. Listing it
+  alongside `board` and `note` turns one idea into three and makes the player
+  wonder how they differ.
+- **Never name a command the player cannot type.** The slash commands are
+  `/play`, `/new-case`, `/casebook`, `/examine` and `/note`. `frontier`, `cast`,
+  `journal`, `hint` and `board` are CLI verbs the narrator runs on the player's
+  behalf — the player says "what threads are still open" in English and the
+  narrator translates. Reading those names out hands them vocabulary that does
+  nothing when typed.
+
+The rule is about what the player hears, not what the engine offers. Everything
+stays available; you just stop reciting it.
+
+**Never put where they are standing and what they hold in the same list.** A
+comma list reads as one kind of thing throughout, so an item from the case file
+sitting beside two items from the room becomes an item in the room. This
+recap is the mistake:
+
+> the ballroom, Vane on the floor, Ruth's opened letter in his desk and
+> unaccounted for
+
+Three things, and the player has every reason to read all three as within
+reach. Two of them are: the room, and the body on its floor. The third is a
+clue in the case file, and the desk it was found in is in room four, a storey
+up and behind a door. Split the sentence at the seam:
+
+> You're in the ballroom, standing over Vane. In the case file and attached to
+> nothing yet: an opened letter to Ruth, found in his desk upstairs.
+
+Say where the detective is, stop, then say what the case file holds. When a
+clue names a place, name that place too — "found in his desk upstairs" — because
+a clue read out in a room the player is standing in will otherwise borrow it.
 
 **Short sentences, one idea each.**
 

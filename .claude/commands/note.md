@@ -53,8 +53,8 @@ If a number doesn't exist the result comes back `ok: false` — the detective
 looks for that line, doesn't find it, and says so. Don't guess which line they
 meant; if the reference is ambiguous, read the notebook back and let them point.
 
-None of this is a turn. It costs nothing and advances nothing; the player is
-thinking on paper.
+None of this reaches the final read-out. The notebook is the player thinking on
+paper, and nothing they write in it is counted or read back at the end.
 
 ## What to say
 
