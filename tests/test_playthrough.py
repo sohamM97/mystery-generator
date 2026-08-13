@@ -224,30 +224,34 @@ def main():
         sample = max(askable, key=lambda c: len(c.source.topic.split()))
         who, subject = sample.source.ref, sample.source.topic
 
+        # Standing where they are: a question put to someone in another room is
+        # not answered, so every engine here starts in the room they speak in.
+        def facing():
+            return Engine(case, State(at=sample.source.at))
+
         def asks(engine, worded):
             return engine.ask(who, worded).get("new_clues", [])
 
         check("the author's own wording still works",
-              bool(asks(Engine(case, State()), subject)))
+              bool(asks(facing(), subject)))
         check("...and so does a leading 'the'",
-              bool(asks(Engine(case, State()), "the " + subject)))
+              bool(asks(facing(), "the " + subject)))
         check("...and a question wrapped around it",
-              bool(asks(Engine(case, State()), f"what do you know about {subject}?")))
+              bool(asks(facing(), f"what do you know about {subject}?")))
         if len(subject.split()) > 1:
             check("...and the words in another order",
-                  bool(asks(Engine(case, State()), " ".join(reversed(subject.split())))))
+                  bool(asks(facing(), " ".join(reversed(subject.split())))))
         check("a subject nobody wrote finds nothing",
-              not asks(Engine(case, State()), "the price of fish in Belgium"))
+              not asks(facing(), "the price of fish in Belgium"))
         check("one subject asked two ways is one question, not two",
-              Engine(case, State()) and
-              (e2 := Engine(case, State())) is not None and
+              (e2 := facing()) is not None and
               (asks(e2, subject), asks(e2, "the " + subject)) and
               len(e2.state.asked) == 1)
 
         # A tie must not be broken by guessing. Spending the player's turn on
         # whichever subject happened to sort first is the bug this replaced,
         # so a phrase that fits two subjects equally must reach neither.
-        ambiguous = Engine(case, State())
+        ambiguous = facing()
         # The two subjects must be the same length in words, or the longer one
         # simply matches more of the muddle and wins on count — which is the
         # resolver working, not the tie this checks.
@@ -339,7 +343,10 @@ def main():
         watson = Engine(case, State(assist="watson"))
         watson.travel("control"); watson.travel("office")
         watson.examine("photograph")
-        watson.travel("mess"); watson.ask("ivy", "safe")
+        # Back through the control room: the office opens onto nothing else,
+        # and a question put from a room away is no longer answered.
+        watson.travel("control"); watson.travel("mess")
+        watson.ask("ivy", "safe")
         check("watson draws the connecting steps but not the chain",
               "r_safe_combination" in watson.state.held)
         check("...and leaves critical conclusions alone",
@@ -720,6 +727,7 @@ def main():
     check("a thing still gated when they looked is not in the read-back",
           "safe" not in gate.journal()["within_reach"])
     gate.examine("photograph")
+    gate.travel("control")
     gate.travel("mess")
     gate.ask("ivy", "safe")
     check("...until the conclusion that opens it is drawn",
@@ -775,7 +783,36 @@ def main():
     check("...and forbidding searchable from becoming a nudge",
           "Never mention `searchable`" in g)
 
-    print("\n[18] the verdict says how they got there")
+    # Asking reached across the map: the engine checked a clue's gates and
+    # whether its room was reachable, never whether the person was in front of
+    # the detective. So a player in one room got another room's testimony back.
+    print("\n[18] you cannot question someone who is not there")
+    away = Engine(case, State(assist="watson"))
+    spoken = next(c for c in case.clues if c.source.kind == "ask")
+    away.state.at = next(l.id for l in case.locations if l.id != spoken.source.at)
+    miss = away.ask(spoken.source.ref, spoken.source.topic)
+    check("someone elsewhere is reported absent, not answered",
+          miss["not_here"] is True and not miss["new_clues"])
+    check("...and the question is not recorded, because none was asked",
+          away.state.asked == [])
+    check("...and it is not dressed up as an empty answer",
+          miss["nothing_here"] is False)
+    check("...while the same question works where they are",
+          bool(Engine(case, State(assist="watson", at=spoken.source.at))
+               .ask(spoken.source.ref, spoken.source.topic)["new_clues"]))
+
+    # Where someone can be found comes out of the clue table, so naming a room
+    # the player has never entered would turn a question into a signpost.
+    check("a person the player has never run across points nowhere",
+          miss["where_you_have_seen_them"] == [])
+    away.state.visited.append(spoken.source.at)
+    check("...but somewhere they have already been is offered",
+          case.location(spoken.source.at).name
+          in away.ask(spoken.source.ref, spoken.source.topic)["where_you_have_seen_them"])
+    check("...and the guidance forbids pointing at the rest",
+          "did not earn" in miss["narrator_guidance"])
+
+    print("\n[19] the verdict says how they got there")
     lest = Engine(case, State(assist="lestrade"))
     lest.examine("body"); lest.examine("wristwatch"); lest.travel("control")
     lest.examine("duty log")

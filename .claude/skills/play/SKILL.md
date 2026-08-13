@@ -193,6 +193,18 @@ not dialogue, and it never appears in your output. Follow it.
   inside it. Query as usual and render the result as her reply; the mechanics
   only come up if they ask, or if you owe them an apology for a question you
   put in their name.
+- **`not_here` means they asked someone who isn't in the room.** No question
+  was put and nothing was recorded — the detective looked round and the person
+  is elsewhere. Say that as a fact about the room, never as a refusal, and
+  never let it read as the person avoiding them.
+
+  `where_you_have_seen_them` names only places the player has already been. If
+  it lists somewhere, offer the walk in half a sentence — "she was in the
+  wardrobe room when you passed through; shall we?" If it is **empty**, they
+  have not run across that person yet, and you say exactly that and point
+  nowhere. The engine knows where everyone's testimony lives; naming a room
+  they have never entered turns their question into a signpost and hands them
+  a lead they did not earn. Don't guess, and don't fill the silence.
 - **A subject already answered empty gets the reply, not the query.** Once the
   engine has returned nothing for a person and a subject, asking again in other
   words returns the same nothing, and a second flat "nothing came of it" reads

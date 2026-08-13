@@ -424,6 +424,8 @@ class Engine:
         ch = self.case.character(char_id)
         if not ch:
             return {"ok": False, "error": f"no such person: {char_id}"}
+        if char_id not in {p["id"] for p in self._people_at(self.state.at)}:
+            return self._not_here(ch)
         # The subject the author wrote, if the player's wording points at one.
         # Everything downstream uses it: a locked subject must deflect however
         # the player phrased it, and `asked` should record one question asked
@@ -442,6 +444,47 @@ class Engine:
                 }
         return self._collect(f"ask:{char_id}:{topic}".lower(),
                              f"You put the question to {ch.name}.", speaker=ch.name)
+
+    def _not_here(self, ch) -> dict:
+        """The detective is not standing where this person is.
+
+        Nothing is recorded and no question is asked, because the detective
+        never opened their mouth. The alternative — answering as though they
+        were present — let a player question the wardrobe mistress from the
+        kitchen and get her testimony back, which reads as the case teleporting
+        her.
+
+        `where_you_have_seen_them` names only places the player has already
+        been. Where a person can be found comes out of the clue table, so
+        listing a room they have never entered would turn a question into a
+        signpost: "she has something to say in the winch house" is a lead they
+        did not earn. An empty list is the honest answer to "where is she?"
+        when the player has not yet found out, and the narrator says so rather
+        than pointing.
+        """
+        seen = [loc.name for loc in self.case.locations
+                if loc.id in self.state.visited
+                and any(p["id"] == ch.id for p in self._people_at(loc.id))]
+        return {
+            "ok": True,
+            "not_here": True,
+            "speaker": ch.name,
+            "new_clues": [],
+            "nothing_here": False,
+            "where_you_have_seen_them": seen,
+            "narrator_guidance": (
+                f"{ch.name} is not where the detective is standing, so no question was "
+                "put and nothing was recorded. Say that as a fact about the room, never "
+                "as a refusal — the detective looked round for them and they are not "
+                "here. If `where_you_have_seen_them` names somewhere, offer to walk: "
+                "'she was in the wardrobe room when you passed through — shall we?' If "
+                "it is empty the player has not found this person yet, and you must say "
+                "so plainly — 'you have not run across them yet' — and point nowhere. "
+                "The engine knows where everyone's testimony lives and naming a room "
+                "the player has never entered hands them a lead they did not earn. "
+                "Never guess, and never imply the person is avoiding them."
+            ),
+        }
 
     def _collect(self, source_key: str, flavour: str, speaker: str = "") -> dict:
         matches = self.case.clues_from(source_key)

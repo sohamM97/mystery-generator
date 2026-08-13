@@ -164,8 +164,12 @@ def cmd_search(args) -> int:
 
 def cmd_ask(args) -> int:
     sealed, engine = _open(args.case)
-    _emit(engine.ask(args.who, args.topic))
-    _close(sealed, engine)
+    out = engine.ask(args.who, args.topic)
+    _emit(out)
+    # Nobody was asked anything, so nothing is written — not the question, not
+    # a history line. The detective looked round for someone who wasn't there.
+    if not out.get("not_here"):
+        _close(sealed, engine)
     return 0
 
 
