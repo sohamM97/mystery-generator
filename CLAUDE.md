@@ -249,20 +249,19 @@ comma list reads as one kind of thing throughout, so an item from the case file
 sitting beside two items from the room becomes an item in the room. This
 recap is the mistake:
 
-> the ballroom, Vane on the floor, Ruth's opened letter in his desk and
-> unaccounted for
+> the mast, Rask under the tarpaulin, the will from the office unaccounted for
 
 Three things, and the player has every reason to read all three as within
-reach. Two of them are: the room, and the body on its floor. The third is a
-clue in the case file, and the desk it was found in is in room four, a storey
-up and behind a door. Split the sentence at the seam:
+reach. Two of them are: the place, and the body on its concrete. The third is a
+clue in the case file, and the office it was found in is across the station.
+Split the sentence at the seam:
 
-> You're in the ballroom, standing over Vane. In the case file and attached to
-> nothing yet: an opened letter to Ruth, found in his desk upstairs.
+> You're at the mast, standing over Rask. In the case file and attached to
+> nothing yet: a will, turned up in the office.
 
 Say where the detective is, stop, then say what the case file holds. When a
-clue names a place, name that place too — "found in his desk upstairs" — because
-a clue read out in a room the player is standing in will otherwise borrow it.
+clue names a place, name that place too — "turned up in the office" — because a
+clue read out in a room the player is standing in will otherwise borrow it.
 
 **Short sentences, one idea each.**
 
@@ -271,11 +270,18 @@ a clue read out in a room the player is standing in will otherwise borrow it.
 This repo can spoil its own content for you, and that is a real hazard when
 working in it:
 
-- **`examples/ashgrove.case.json` is the plaintext answer key** to a case that
-  may be sitting sealed and unplayed in `cases/ashgrove/`. It is the schema
-  reference an authoring LLM imitates, so you will be tempted to read it. If
-  the user might ever play Ashgrove, read its *structure* (keys, shapes, counts)
-  rather than its contents, and prefer `docs/CASE_SCHEMA.md`.
+- **`examples/ashgrove.case.json` is the plaintext answer key**, and it is
+  checked in, so Ashgrove is spoiled for everyone by design. That is what makes
+  it the safe example: **every worked example in this repo comes from Ashgrove,
+  and none comes from a case a player might still be holding.** A rule
+  illustrated with the room a player is standing in this afternoon publishes
+  their solution to a public repo. If Ashgrove does not contain the situation
+  you need, add it to Ashgrove — it is the test case and should be as expansive
+  as the engine needs — then `validate` it and run the suite.
+
+  A sealed `cases/ashgrove/` may still be sitting unplayed on someone's disk,
+  and this policy trades that away knowingly. Anyone who wants Ashgrove
+  unspoiled should not read the repo's own documentation.
 - `cases/*`, `drafts/`, and `*.key` are gitignored. Drafts are plaintext
   solutions; seal with `--delete-draft`.
 - `spoil` is deliberately awkward and appends to `spoilers.log`, which the final

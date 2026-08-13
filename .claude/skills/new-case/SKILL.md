@@ -82,26 +82,28 @@ Everything below serves that.
   narrator describes the room from `desc` and nothing else, so an object you
   put in a room without writing it into the prose is invisible: the player can
   only reach it by naming it at random, and that is guessing, not detection.
-  A ballroom described as chairs, chalk marks and a ladder, holding an
-  examinable `coat`, has a coat nobody in the story can see. Name the object in
+  An office described as nineteen years of paper and a photograph, holding an
+  examinable `safe`, has a safe nobody in the story can see. Name the object in
   the description and leave what is *interesting* about it to the clue — "a
   scrubbed patch on the floor by the desk" in the room, "the scrubbed patch
   still smells of engineering-grade solvent" in the clue. `validate` reports
   each one as an `UNSEEN_OBJECT` error, and `seal` refuses the case until you
   fix it. Naming a part of something the description already covers is fine —
-  a yard described as "four steps down" shows the player its `bottom step` —
-  but only the noun the ref ends on carries that, so `coal chute` is still
-  unseen in a room that merely mentions coal.
+  a darkroom described as holding "a rack of glass plates" shows the player its
+  `top plate` — but only the noun the ref ends on carries that, so `key
+  cabinet` is still unseen in a room that merely mentions keys.
 
   **A gated object is described from the first turn, like everything else.**
   The temptation is to leave it out of the description until it matters, and it
   cannot work: descriptions are static, and the room prints the same prose in
-  turn one and in turn forty. A coat gated behind "he came in from the yard",
-  missing from the kitchen description, is a coat the player cannot see before
-  the gate and watches appear from nowhere after it. Write it into the room
-  from the start. It sits there telling them nothing until they hold the
-  conclusion that makes it worth touching — which is what a gate is for. It
-  holds back *meaning*, never the object.
+  turn one and in turn forty. Ashgrove gets this right: the safe is gated on
+  working out its combination, and the office describes "a Chubb safe set into
+  the wall behind the filing cabinet" from the first turn. Leave it out and it
+  is a safe the player cannot see before the gate and watches appear from
+  nowhere after it. Write it into the room from the start. It sits there
+  telling them nothing until they hold the conclusion that makes it worth
+  touching — which is what a gate is for. It holds back *meaning*, never the
+  object.
 
   **Place it, don't just name it.** "A coat" tells the player a coat exists.
   "He is wearing an overcoat" tells them where it is — which is what anyone
@@ -115,19 +117,20 @@ Everything below serves that.
   when the evidence completes, and its statement is delivered to them there.
   This one is written badly:
 
-  > Vane was struck once at the top of the yard steps and went down them
-  > backwards; the ladder was stood over him afterwards to explain the injury.
+  > The body was hoisted to the gantry by the service winch and dropped, to
+  > stage a fall.
 
-  It reached the player in the scullery yard, which has steps, a coal chute and
-  a standpipe and no ladder in it. One sentence, two rooms, and nothing marking
-  the join — so they asked what a ladder was doing out there, and they were
-  right to. Name the room the moment the sentence leaves the one it started in:
+  It reaches the player in the winch house, which holds a cable drum and a
+  brass counter and no gantry — the gantry is a hundred and forty feet up the
+  mast. One sentence, two places, and nothing marking the join. Name the place
+  the moment the sentence leaves the one it started in:
 
-  > Vane was struck once at the top of the yard steps and went down them
-  > backwards; the lighting ladder in the ballroom was stood over him
-  > afterwards to explain the injury.
+  > The body was hoisted to the gantry at the mast head by the service winch
+  > and dropped, to stage a fall.
 
-  Six words, and the compression stops reading as a contradiction. The test:
+  Four words, and the compression stops reading as a contradiction. Ashgrove
+  does this properly elsewhere — "Rask was killed in the control room and moved
+  afterwards" carries its room in the sentence. The test:
   read each revelation statement as though standing in every location in the
   case. If an object in it sounds like it is in the wrong room from any of
   them, say which room it is in. `validate` cannot catch this — it is prose,

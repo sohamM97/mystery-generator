@@ -54,16 +54,17 @@ def main():
     check("...as an error, so seal refuses it without --force",
           not validate(blinded).ok)
 
-    # The matcher must not dictate prose. A yard described as "four steps down"
-    # shows the player its bottom step, and only the noun the ref ends on may
-    # carry that — otherwise `coal chute` would pass in a room mentioning coal.
+    # The matcher must not dictate prose. A darkroom described as holding "a
+    # rack of glass plates" shows the player its top plate, and only the noun
+    # the ref ends on may carry that — otherwise `key cabinet` would pass in a
+    # room that merely mentions keys.
     from mystery.validate import _describes
     check("a description naming the whole thing shows a part of it",
-          _describes("bottom step", "four steps down, a coal chute, a standpipe"))
+          _describes("top plate", "red light and a rack of glass plates drying"))
     check("...but a part-word alone is not enough",
-          not _describes("coal chute", "a scuttle of coal by the range"))
+          not _describes("key cabinet", "a shadow board, and keys on a nail"))
     check("...and an object nothing describes stays unseen",
-          not _describes("coat", "a range going low, a scrubbed table"))
+          not _describes("safe", "colder than the corridor, nineteen years of paper"))
 
     print("\n[2] seal round-trips and resists tampering")
     key = new_key()
@@ -130,8 +131,9 @@ def main():
               not miss["new_clues"] and "at_hand_elsewhere" not in miss)
         check("...and the guidance forbids narrating it as a finding",
               "never as a finding" in miss["narrator_guidance"])
-        # The tray trap: room four's description names the tray, but the clue
-        # lives on the landing. This used to come back as "nothing here".
+        # The covered way's description names the doctor's note, visible through
+        # the open door, but the clue lives in the mess. Answering that with a
+        # bare "nothing here" describes a note with nothing on it.
         elsewhere = None
         for loc in case.locations:
             probe = Engine(case, State(assist="holmes", at=loc.id))
@@ -149,7 +151,7 @@ def main():
                   bool(elsewhere.get("at_hand_elsewhere")) and not elsewhere["new_clues"])
         else:
             check("a thing this room names but cannot reach says where it is",
-                  True, "no such pair in this case; covered by pierhead's tray")
+                  False, "Ashgrove has lost its visible-but-out-of-reach pair")
         gated_ref = next((c.source.ref for c in case.clues
                           if c.source.kind == "examine" and c.gates), "")
         if gated_ref:
@@ -246,7 +248,12 @@ def main():
         # whichever subject happened to sort first is the bug this replaced,
         # so a phrase that fits two subjects equally must reach neither.
         ambiguous = Engine(case, State())
-        pair = [c.source.topic for c in askable if c.source.ref == who][:2]
+        # The two subjects must be the same length in words, or the longer one
+        # simply matches more of the muddle and wins on count — which is the
+        # resolver working, not the tie this checks.
+        mine = [c.source.topic for c in askable if c.source.ref == who]
+        pair = next(([a, b] for i, a in enumerate(mine) for b in mine[i + 1:]
+                     if len(a.split()) == len(b.split())), [])
         if len(pair) == 2:
             muddled = " ".join(pair)  # every word of both subjects, at once
             check("wording that fits two subjects equally resolves to neither",
@@ -686,7 +693,7 @@ def main():
           sh.journal()["within_reach"] == sorted(shown))
     check("...marked as looked at", sh.journal()["looked_around"] is True)
 
-    # The wardrobe room's trap: looked at, and genuinely holding nothing. It
+    # The covered way's trap: looked at, and genuinely holding nothing. It
     # must not read the same as a room nobody has walked into.
     bare = Engine(case, State(assist="watson"))
     bare.state.shown[bare.state.at] = []
@@ -743,8 +750,8 @@ def main():
     check("a look says who can be spoken to, not who is here",
           "people_here" not in reach.look())
 
-    # Nobody in Ashgrove talks in two places, so build the case that bit:
-    # Maureen Cade answers in the Marine's foyer and its kitchen alike.
+    # Arthur Bell answers in the mess and in the covered way, so this is real
+    # in Ashgrove — built here anyway so the check survives Bell being moved.
     twice = _copy.deepcopy(case)
     spoken = next(c for c in twice.clues if c.source.kind == "ask")
     second = _copy.deepcopy(spoken)

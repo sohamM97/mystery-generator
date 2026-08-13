@@ -33,7 +33,7 @@ HUNCH_GUIDANCE = (
 LOOK_GUIDANCE = (
     "Describe the place, then say what is within reach. `people_you_can_speak_to` is "
     "who has something to say here, not who is standing where: the engine tracks "
-    "nobody's position. Write it as reach — 'Maureen Cade is about, if you want her' — "
+    "nobody's position. Write it as reach — 'Arthur Bell is about, if you want him' — "
     "never as a body in a fixed spot, because the same person answers in two rooms and "
     "a player told twice that she is standing in front of them will ask how she moved. "
     "An empty `examinable` is an answer and the player is owed it: say plainly that "
@@ -205,8 +205,8 @@ class Engine:
             # Not "people_here": the engine tracks no one's position. This is
             # everyone with testimony sourced in this room, which is a claim
             # about who the detective can get hold of and not about where a
-            # body is standing. Maureen Cade answers in her own foyer and her
-            # own kitchen, and nothing says she walked between them.
+            # body is standing. Arthur Bell answers in the mess and in the
+            # covered way, and nothing says he walked between them.
             "people_you_can_speak_to": people,
             "examinable": examinable,
             "searchable": any(c.source.kind == "search" for c in here),
@@ -254,18 +254,18 @@ class Engine:
 
         - the thing is here → whatever it has to give, or nothing
         - the thing is *named in this room's description* but its clue lives in
-          a room next door — a supper tray outside a bedroom door, visible from
-          inside the bedroom and examinable only from the landing. Answering
-          that with a bare "nothing here" describes an empty tray, when what is
-          true is that the tray is out of reach; a narrator relaying it states a
-          fact about the world the engine never said, and the real clue
-          contradicts it two moves later.
+          a room next door — the doctor's note, visible through the open door
+          from the covered way and examinable only from the mess. Answering
+          that with a bare "nothing here" describes a note with nothing on it,
+          when what is true is that it is out of reach; a narrator relaying it
+          states a fact about the world the engine never said, and the real
+          clue contradicts it two moves later.
         - nothing of that name here at all → say so as a failed search, never
           as a finding
 
-        Refs are matched loosely, because the case calls it `tray` and the room
-        description calls it a `supper tray`, and a player should not have to
-        guess the author's noun.
+        Refs are matched loosely, because the case calls it `note` and the room
+        description calls it the `doctor's note`, and a player should not have
+        to guess the author's noun.
         """
         loc = self.case.location(self.state.at)
         target = self._resolve_ref(ref, self._examinables_at(self.state.at))
@@ -1027,7 +1027,7 @@ class Engine:
             "location": (l.name if (l := self.case.location(self.state.at)) else "?"),
             "within_reach": self.state.shown.get(self.state.at, []),
             # An empty `within_reach` has two meanings and the narrator has to
-            # tell them apart: the wardrobe room holds nothing to examine by
+            # tell them apart: the covered way holds nothing to examine by
             # name, and a room nobody has looked around in yet holds an unknown
             # number. Both read as `[]`, so the fact of having looked is its
             # own flag.

@@ -35,7 +35,7 @@ picked the case up cold, still knows what the detective is looking straight at.
 
 **Read it with `looked_around`, because an empty list means two things.**
 `looked_around: false` is a room nobody has looked around in — you do not know
-what is here. `looked_around: true` with an empty list is the wardrobe room:
+what is here. `looked_around: true` with an empty list is the covered way:
 somebody looked, and there is genuinely nothing to examine by name. Answering
 the second as though it were the first sends the player to look at a room they
 have already looked at; answering the first as though it were the second tells
@@ -59,10 +59,10 @@ Read the list back as things within reach, not as an inventory screen. Anything
 prose first — a `body` in the list means a man is lying on the floor, and
 listing him between a coat and a lamp buries him.
 
-**An empty list is an answer, not a blank.** The wardrobe room has rails of
-costume, a treadle machine and a paraffin heater in its description and nothing
-at all in its examinable list. Say so — "nothing in here invites a closer
-look" — rather than describing the room and stopping. A player who is not told
+**An empty list is an answer, not a blank.** The covered way has corrugated
+iron, a swinging bulb and drifted snow in its description and nothing at all in
+its examinable list. Say so — "nothing in here invites a closer look" — rather
+than describing the room and stopping. A player who is not told
 will read your scenery as a list of leads and start naming nouns out of it.
 
 ## With an argument: look closely at it
@@ -91,13 +91,12 @@ look is pointless.
   gave you nothing" is a claim about the world the engine never made, and it
   will contradict the real clue later.
 - **`unknown_target` on a noun the room description gave them is the trap.**
-  The wardrobe room describes rails of costume; `examine costumes` comes back
-  `unknown_target`; "there's nothing here answering to that" reads as *there
-  are no costumes* and contradicts the sentence you wrote a moment before. The
-  engine said something narrower: it has nothing filed under that name. Leave
-  the rails standing — "nothing about them detains you" — and then say the
-  thing they were actually missing, that this room holds nothing to examine by
-  name. Say once, when a noun of theirs first misses, that a room description
+  The mast describes a tarpaulin weighted with stones; `examine tarpaulin`
+  comes back `unknown_target`; "there's nothing here answering to that" reads
+  as *there is no tarpaulin* and contradicts the sentence you wrote a moment
+  before. The engine said something narrower: it has nothing filed under that
+  name. Leave the tarpaulin where it is — "nothing about it detains you" — and
+  then name what the place does hold, which is the thing they were missing. Say once, when a noun of theirs first misses, that a room description
   is scenery and only some of what it names is a target. Until someone says it,
   a player reads every noun in your prose as a lead.
 - **Withheld content stays invisible.** When the guidance says a clue exists
@@ -112,7 +111,7 @@ look is pointless.
   never did.
 - **Locate the nouns in a conclusion you deliver.** It was written without
   knowing where the player would be standing when it landed. Examining the
-  bottom step in the scullery yard draws "the ladder was stood over him
-  afterwards" — and there is no ladder in that yard. Deliver the statement
-  whole, never reworded, then add the clause that places it: "the ladder there
-  being the one in the ballroom."
+  counter in the winch house draws "the body was hoisted to the gantry by the
+  service winch" — and the gantry is a hundred and forty feet up the mast.
+  Deliver the statement whole, never reworded, then add the clause that places
+  it: "the gantry there being the one at the top of the mast."

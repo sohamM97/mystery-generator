@@ -23,12 +23,12 @@ from .engine import Engine
 def _describes(ref: str, desc: str) -> bool:
     """Can a player standing in this room see the thing named by `ref`?
 
-    The whole phrase counts, and so does the noun it ends on: a yard described
-    as "four steps down" shows the player its `bottom step`, and demanding the
-    author write the words "bottom step" would be the matcher dictating prose.
-    Only the last word is allowed to carry it — matching on any word would let
-    `coal chute` pass in a room that merely mentions coal, which is a chute
-    nobody can see.
+    The whole phrase counts, and so does the noun it ends on: a darkroom
+    described as holding "a rack of glass plates" shows the player its `top
+    plate`, and demanding the author write the words "top plate" would be the
+    matcher dictating prose. Only the last word is allowed to carry it —
+    matching on any word would let `key cabinet` pass in a room that merely
+    mentions keys, which is a cabinet nobody can see.
     """
     if Engine._mentioned_in(ref, desc):
         return True
@@ -182,8 +182,8 @@ def _check_references(case: Case, rep: Report) -> None:
                 rep.error("BAD_REF", f"location {loc.id!r} gated on unknown revelation {g!r}")
 
     # An object the player can examine but the room never describes is
-    # invisible: the narrator renders the description it was given, so the coat
-    # nobody wrote into the ballroom is a coat the detective cannot see. They
+    # invisible: the narrator renders the description it was given, so a safe
+    # nobody wrote into the office is a safe the detective cannot see. They
     # find it by naming it at random, which is not detection. Knox's rule
     # against unclued discoveries applied to the furniture.
     for loc in case.locations:

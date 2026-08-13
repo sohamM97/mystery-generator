@@ -22,8 +22,8 @@ It takes no argument. It searches wherever the detective is standing.
 **A place's searchable contents and its examinable contents are different
 sets**, and this is the thing players get wrong. Looking around names what is
 here and turns nothing up. Examining is the close look at one named thing.
-Searching reaches what is attached to no named thing at all — the wardrobe room
-lists nothing to examine and holds a pencilled call sheet to find. A player who
+Searching reaches what is attached to no named thing at all — the covered way
+lists nothing to examine and holds trodden snow to find. A player who
 looked around, was told there was nothing here, and moved on has walked out of
 a room with a clue in it. Say the difference the first time it could matter.
 
@@ -54,9 +54,9 @@ a room with a clue in it. Say the difference the first time it could matter.
   player who mistakes it for their own has been told they reasoned something
   they never did. **Locate its nouns**, too: the statement was written without
   knowing where the player would be standing when it landed, so a conclusion
-  naming the ballroom ladder can reach them in a yard that has no ladder in it.
+  naming the gantry can reach them in a winch house at the foot of the mast.
   Deliver it whole, never reworded, then add the clause that places it — "the
-  ladder there being the one in the ballroom."
+  gantry there being the one at the top of the mast."
 
 Searching costs the player nothing, like everything else they can do. Don't
 announce that a place is worth searching, or that it isn't: the engine knows

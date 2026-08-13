@@ -87,7 +87,7 @@
       "id": "control",
       "name": "Control Room",
       "desc": "Warm, low-lit, smelling of hot dust and valves. Chart recorders scratch out a signal nobody is watching. The duty log lies open on the desk, the duty roster pinned above it and a telephone docket spiked beside the set. There is a scrubbed patch on the floor by the desk, and a chip knocked out of the doorframe.",
-      "connects": ["mast", "office", "engineering", "mess"]
+      "connects": ["mast", "office", "engineering", "mess", "corridor"]
     },
     {
       "id": "office",
@@ -105,7 +105,13 @@
       "id": "mess",
       "name": "Mess Hall",
       "desc": "Long table, a stove, a wireless, and the observatory's only comfortable chairs. Someone has laid a sheet over the table where the doctor worked, the doctor's note still weighted at one corner of it.",
-      "connects": ["control", "darkroom"]
+      "connects": ["control", "darkroom", "corridor"]
+    },
+    {
+      "id": "corridor",
+      "name": "The covered way",
+      "desc": "A tunnel of corrugated iron joining the mess to the control room, one bulb swinging on its flex, and the wind coming through every join. Snow has drifted in under the door at the mess end, and through that door you can see the sheet laid over the long table with the doctor's note still weighted at its corner.",
+      "connects": ["control", "mess"]
     },
     {
       "id": "darkroom",
@@ -313,6 +319,24 @@
       "detail": "'I was trying to sleep. The lights dipped and the note of the thing went down and then up, twice, the way it does when something heavy comes on the line. Ten to eleven, near enough. I looked at my travelling clock because I was composing a complaint.'",
       "source": {"kind": "ask", "at": "mess", "ref": "bell", "topic": "generator"},
       "supports": ["r_method_winch"],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_covered_way_drift",
+      "kind": "physical",
+      "headline": "The drifted snow in the covered way is trodden flat, and the prints run both ways.",
+      "detail": "The drift under the mess door is walked down to a band a foot wide. The prints run in both directions and there are too many of them to count.",
+      "source": {"kind": "search", "at": "corridor"},
+      "supports": [],
+      "reliability": "hard"
+    },
+    {
+      "id": "c_bell_cold",
+      "kind": "testimony",
+      "headline": "Bell: the covered way is the coldest place in Scotland and he has walked it constantly.",
+      "detail": "'That passage is the coldest place in Scotland and I have told anyone who would stand still long enough. I have been up and down it more times than I can count since Wednesday, and I shall be putting the heating in my report.'",
+      "source": {"kind": "ask", "at": "corridor", "ref": "bell", "topic": "covered way"},
+      "supports": [],
       "reliability": "hard"
     },
     {
