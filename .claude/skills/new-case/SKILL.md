@@ -96,6 +96,29 @@ Everything below serves that.
   from guessing, so a named-but-unplaced object passes `validate` and still
   leaves the player asking a question neither of them can answer.
 
+- **A conclusion carries its own geography, because you do not control where
+  it is read.** A revelation lands wherever the player happens to be standing
+  when the evidence completes, and its statement is delivered to them there.
+  This one is written badly:
+
+  > Vane was struck once at the top of the yard steps and went down them
+  > backwards; the ladder was stood over him afterwards to explain the injury.
+
+  It reached the player in the scullery yard, which has steps, a coal chute and
+  a standpipe and no ladder in it. One sentence, two rooms, and nothing marking
+  the join — so they asked what a ladder was doing out there, and they were
+  right to. Name the room the moment the sentence leaves the one it started in:
+
+  > Vane was struck once at the top of the yard steps and went down them
+  > backwards; the lighting ladder in the ballroom was stood over him
+  > afterwards to explain the injury.
+
+  Six words, and the compression stops reading as a contradiction. The test:
+  read each revelation statement as though standing in every location in the
+  case. If an object in it sounds like it is in the wrong room from any of
+  them, say which room it is in. `validate` cannot catch this — it is prose,
+  not structure — so it is yours to check.
+
 ## Hard rules
 
 - The culprit must be in the cast from act 0 or 1, with lines and presence.

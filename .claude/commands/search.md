@@ -52,7 +52,11 @@ a room with a clue in it. Say the difference the first time it could matter.
   reaching one. Voice it as the case laying the line down, and say whose
   thinking it was — it will appear on their board marked as the game's, and a
   player who mistakes it for their own has been told they reasoned something
-  they never did.
+  they never did. **Locate its nouns**, too: the statement was written without
+  knowing where the player would be standing when it landed, so a conclusion
+  naming the ballroom ladder can reach them in a yard that has no ladder in it.
+  Deliver it whole, never reworded, then add the clause that places it — "the
+  ladder there being the one in the ballroom."
 
 Searching costs the player nothing, like everything else they can do. Don't
 announce that a place is worth searching, or that it isn't: the engine knows

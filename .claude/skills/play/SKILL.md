@@ -160,6 +160,23 @@ not dialogue, and it never appears in your output. Follow it.
   **Description is scenery; only some of it is a target.** Say this to the
   player the first time one of their nouns misses, because until someone says
   it they will assume every noun you wrote is a thing the case has filed.
+- **A conclusion is written elsewhere and read where the player stands, so
+  locate its nouns as you deliver it.** In the scullery yard — steps, coal
+  chute, standpipe, no ladder — the case draws:
+
+  > Vane was struck once at the top of the yard steps and went down them
+  > backwards; the ladder was stood over him afterwards to explain the injury.
+
+  One sentence, two rooms, nothing marking the join. The player asks what a
+  ladder is doing out here, and they are right to.
+
+  The authoring skill is told to write the room into the statement, so a case
+  sealed after that should not need this. Sealed cases are fixed, and repairing
+  them as you read is yours. **You may not reword the statement** — it is
+  sealed case text and its nouns and numbers are the puzzle. Deliver it whole,
+  then add a clause saying where its nouns are: "the ladder there being the one
+  in the ballroom." No interpretation, and never a retelling of the sequence in
+  your own words. Working out what happened in which order is theirs.
 - **`people_you_can_speak_to` is reach, not position.** The engine tracks
   nobody's whereabouts — it lists whoever has testimony sourced in this room, so
   Maureen Cade answers in her own foyer and her own kitchen and nothing says she

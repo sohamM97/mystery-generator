@@ -105,3 +105,14 @@ look is pointless.
   eludes you."
 - **Nothing found means nothing found.** One line, no padding. Never let the
   length of your reply carry information about what was or wasn't there.
+- **`inferences` are the assist level drawing a conclusion**, not the player
+  reaching one. Voice it as the case laying the line down and say whose
+  thinking it was: it lands on their board marked as the game's, and a player
+  who mistakes it for their own has been told they reasoned something they
+  never did.
+- **Locate the nouns in a conclusion you deliver.** It was written without
+  knowing where the player would be standing when it landed. Examining the
+  bottom step in the scullery yard draws "the ladder was stood over him
+  afterwards" — and there is no ladder in that yard. Deliver the statement
+  whole, never reworded, then add the clause that places it: "the ladder there
+  being the one in the ballroom."
